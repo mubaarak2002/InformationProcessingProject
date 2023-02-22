@@ -1,1 +1,1 @@
-"# InformationProcessingProject" 
+# InformationProcessingProject 

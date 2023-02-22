@@ -1,0 +1,1116 @@
+<html>
+<head>
+  <style>
+    @font-face{
+      font-family: SpaceInvaders;
+      src: url("space_invaders[1].ttf") format("truetype")
+    }
+    body{
+      overflow: hidden;
+      background: black;
+    }
+    #canvas,#canvas2{
+      position: absolute;
+      top: 50%;
+      margin-top: -350px;
+      left: 50%;
+      margin-left: -600px;
+      z-index: -1;
+    }
+    #livescanvas{
+      position: absolute;
+      top: 99%;
+      margin-top: -125px;
+      left: 1%;
+    }
+    h1{
+      font-family: SpaceInvaders, calibri, courier;
+      color: white;
+      display: inline;
+    }
+    h2{
+      font-family: SpaceInvaders, calibri, courier;
+      font-size: 10px;
+      color: white;
+    }
+    #text{
+      width: 100%;
+    }
+    #text2{
+      width: 100%;
+    }
+    .spinner{
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      margin-top: -25px;
+      margin-left: -25px;
+      border: 2px solid transparent;
+      border-radius: 30px;
+      border-top-color: orange;
+      border-bottom-color: orange;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s ease infinite;
+    }    
+    @keyframes spin{
+      to {
+        transform: rotate(360deg);
+      }
+    } 
+  </style>
+  <title>Space Invaders</title>
+</head>
+
+<body>
+  <div class='main'>
+    <div id="text">
+      <h1 id="kills"></h1>
+      <div id="text2">
+        <h1 id="level"></h1>
+      </div>
+    </div>
+    <canvas id="canvas" width=1200px height=700px></canvas>
+    <canvas id="canvas2" width=1200px height=700px></canvas>
+    <canvas id="livescanvas" width=600px height=125px></canvas>
+  </div>
+  <img hidden id="EF1" src="images/Explosion_2 F1.png"/>
+  <img hidden id="EF2" src="images/Explosion_2 F2.png"/>
+  <img hidden id="EF3" src="images/Explosion_2 F3.png"/>
+  <img hidden id="EF4" src="images/Explosion_2 F4.png"/>
+  <img hidden id="EF5" src="images/Explosion_2 F5.png"/>
+  <img hidden id="EF6" src="images/Explosion_2 F6.png"/>
+  <img hidden id="EF7" src="images/Explosion_2 F7.png"/>
+  <img hidden id="EF8" src="images/Explosion_2 F8.png"/>
+  <img hidden id="EF9" src="images/Explosion_2 F9.png"/>
+  <img hidden id="EF10" src="images/Explosion_2 F10.png"/>
+  <img hidden id="EF11" src="images/Explosion_2 F11.png"/>
+  <img hidden id="EF12" src="images/Explosion_2 F12.png"/>
+</body>
+
+<script>
+document.querySelector('.main div').style.visibility = "hidden";
+document.querySelector('.main canvas').style.visibility = "hidden";
+document.querySelector('.main').classList.add('spinner');
+setTimeout(() => {setInterval(draw,1);document.getElementById('canvas').style.border = '2px solid blue';document.getElementById('canvas2').style.border = '2px solid blue';document.querySelector('.main div').style.visibility = "visible";document.querySelector('.main canvas').style.visibility = "visible";document.querySelector('.main').classList.remove('spinner');},(Math.random()*7000-2300)+2300);
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+var canvas2 = document.getElementById("canvas2");
+var ctx2 = canvas2.getContext("2d");
+
+var livescanvas = document.getElementById("livescanvas");
+var ctx3 = livescanvas.getContext("2d");
+
+var leftPressed = false;
+var rightPressed = false;
+var spacePressed = false;
+
+var rowcount;
+var columnCount;
+var rowcountI = 6;
+var columnCountI = 9;
+var rowcounto = 6;
+var columnCounto = 9;
+
+var position;
+var rowcolour;
+var costume;
+
+var rowPC;
+
+var lives = 3;
+var maxlives = lives;
+var livesGap = 10;
+
+var sfw;
+var sfh;
+var sfwi = 66;
+var sfhi = 48;
+var sfwo = 66;
+var sfho = 48;
+var ebfw;
+var ebfh;
+var pfw = 104;
+var pfh = 72;
+var lfw = livescanvas.width/maxlives - livesGap;
+var lfh = livescanvas.height;
+var ew = 96;
+var eh = 96;
+
+var yGap;
+var xGap;
+
+var w;
+var h;
+var w2;
+var h2;
+var w3;
+var h3;
+var ebw;
+var ebh;
+var pw = pfw/130;
+var ph = pfh/80;
+var lw = lfw/130;
+var lh = lfh/80;
+
+var bw;
+var bh;
+var bw2;
+var bh2;
+var bw3;
+var bh3;
+var ebbw;
+var ebbh;
+var pbw = pw*10;
+var pbh = ph*10;
+var lbw = lw*10;
+var lbh = lh*10;
+
+var x;
+var y;
+var px = 0;
+var py = canvas.height - 70;
+var lx;
+var ly;
+var ex;
+var ey;
+
+var bx = 0;
+var by = -10000;
+var bbw = 1;
+var bbh = 1;
+
+var xOffset;
+
+var spaceInvader1WalkV = false;
+var spaceInvader2WalkV = false;
+var spaceInvader3WalkV = false;
+
+var left;
+var right;
+
+var bottomY;
+var xShift;
+
+var score = 0;
+
+var gameOver;
+var firstMove;
+var moved;
+var movedLast;
+
+var leftTrue;
+var rightTrue;
+  
+var costume;
+
+var dx;
+var dy;
+var dWidth;
+var dHeight;
+var dValues;
+var displayEDI;
+var clearme;
+var deadx;
+var deady;
+
+var EF1 = document.getElementById("EF1");
+var EF2 = document.getElementById("EF2");
+var EF3 = document.getElementById("EF3");
+var EF4 = document.getElementById("EF4");
+var EF5 = document.getElementById("EF5");
+var EF6 = document.getElementById("EF6");
+var EF7 = document.getElementById("EF7");
+var EF8 = document.getElementById("EF8");
+var EF9 = document.getElementById("EF9");
+var EF10 = document.getElementById("EF10");
+var EF11 = document.getElementById("EF11");
+var EF12 = document.getElementById("EF12");
+
+var alreadySetup = false;
+
+var sX;
+var sY;
+var sValues;
+
+var alreadyHit;
+var hit;
+
+var allDead;
+
+var shootBackInterval;
+var moveInterval;
+
+var level = 0;
+var levelOdd = 1;
+
+var gameOverRan;
+var gameOverFrame;
+
+var moveSpeed = 400;
+var shootBackSpeed = 2000;
+
+function setup(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  
+  rowcount = rowcountI;
+  columnCount = columnCountI;
+
+  position = new Array(rowcount);
+  rowcolour = new Array(rowcount);
+  costume = new Array(rowcount);
+
+  for(o = 0; o < rowcount; o++){
+    position[o] = new Array(columnCount);
+    rowcolour[o] = new Array(3);
+  }
+
+  for(r = 0; r < rowcount; r++){
+    for(c = 0; c < columnCount; c++){
+      position[r][c] = true;
+    }
+  }
+
+  for(o = 0; o < rowcount; o++){
+    for(j = 0; j < 3; j++){
+      rowcolour[o][j] = Math.floor(Math.random() * 255);
+    }
+  }
+
+
+  for(o = 0; o < rowcount; o++){
+    rowPC = rowcount/3;
+    if(o < rowPC * 3){
+      costume[o] = 3;
+    }
+    if(o < rowPC * 2){
+      costume[o] = 2;
+    }
+    if(o < rowPC){
+      costume[o] = 1;
+    }
+  }  
+  
+  sfw = sfwi;
+  sfh = sfhi;
+  ebfw = sfw/4.7;
+  ebfh = sfh/1.5;
+  yGap = sfw/2.5;
+  xGap = sfh/4;
+  w = sfw/120;
+  h = sfh/80;
+  w2 = sfw/140;
+  h2 = sfh/90;
+  w3 = sfw/130;
+  h3 = sfh/90;
+  ebw = ebfw/30;
+  ebh = ebfh/70;
+  bw = w*10;
+  bh = h*10;
+  bw2 = w2*10;
+  bh2 = h2*10;
+  bw3 = w3*10;
+  bh3 = h3*10;
+  ebbw = ebw*10;
+  ebbh = ebh*10;
+  x = 12;
+  y = 12;
+  xOffset = 0;
+  left = false;
+  right = true;
+  bottomY = 10 + (sfh + yGap)*rowcount;
+  xShift = 0;
+  dWidth = sfw;
+  dHeight = sfh;
+  dValues = new Array(1);
+  dValues = new Array(1);
+  dValues[0] = new Array(2);
+  dValues[0][0] = "spacefiller";
+  dValues[0][1] = "spacefiller";
+  clearme = 1;
+  sValues = new Array(1);
+  sValues[0] = new Array(2);
+  sValues[0][0] = "spacefiller";
+  sValues[0][1] = "spacefiller";
+   
+  gameOver = false;
+  firstMove = true;
+  moved = false;
+  movedLast = false;
+  
+  alreadyHit = false;
+  hit = false;
+  
+  allDead = false;
+  
+  gameOverRan = false;
+  gameOverFrame = true;
+  
+  sfwi -= (sfwo + xGap)/columnCounto/4;
+  sfhi -= (sfho + yGap)/rowcounto/8;
+  if(levelOdd == 4){
+    rowcountI++;
+    columnCountI++;
+    levelOdd = 1;
+  }
+  else if(levelOdd == 2){
+    columnCountI++;
+    levelOdd++;
+  }
+  else{
+    levelOdd++;
+  }
+  level++;
+  document.getElementById("level").innerHTML = "Level: " + level;
+  
+  clearInterval(moveInterval);
+  clearInterval(shootBackInterval);
+  moveInterval = setInterval(move,moveSpeed);
+  setTimeout(function(){ shootBackInterval = setInterval(shootBack,shootBackSpeed); },shootBackSpeed);  
+  moveSpeed -= 30;
+  shootBackSpeed -= 200;
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(alreadySetup == false){
+    setup();
+    alreadySetup = true;
+  }
+  if(gameOver == false){
+    collisionDetection();
+    document.getElementById("kills").style.fontSize = "100px";
+    document.getElementById("level").style.fontSize = "100px";
+    document.getElementById("text").style.height = '100px';
+    document.getElementById("text2").style.height = '100px';
+    document.getElementById("text").style.position = 'absolute';
+    document.getElementById("text").style.top = '1%';
+    document.getElementById("text").style.left = '0%';
+    document.getElementById("text2").style.position = 'absolute';
+    document.getElementById("text2").style.top = '1%';
+    document.getElementById("text2").style.left = '0%';
+    document.getElementById("text2").style.textAlign = 'right';
+    document.getElementById("kills").innerHTML = "Score: " + score;
+    for(r = 0; r < rowcount; r++){
+      for(c = 0; c < columnCount; c++){
+        x = xOffset + xGap*(c + 1) + sfw*c + xShift;
+        y = bottomY - (r + 1)*(sfh + yGap);
+        if(position[r][c] == true){
+          if(costume[r] == 1){
+            if(spaceInvader1WalkV == false){
+              spaceInvader1(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+            else if(spaceInvader1WalkV == true){
+              spaceInvader1Walk(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+          }
+          else if(costume[r] == 2){
+            if(spaceInvader2WalkV == false){
+              spaceInvader2(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+            else if(spaceInvader2WalkV == true){
+              spaceInvader2Walk(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+          }
+          else if(costume[r] == 3){
+            if(spaceInvader3WalkV == false){
+              spaceInvader3(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+            else if(spaceInvader3WalkV == true){
+              spaceInvader3Walk(rowcolour[r][0],rowcolour[r][1],rowcolour[r][2]);
+            }
+          }
+        }
+      }
+    }
+    livesDisplay();
+    drawEnemyBullet();
+    player();
+    bullet();
+    by -= 4;
+    for(s = 1; s < sValues.length; s++){
+      sValues[s][1] += 2;
+    }
+    if(leftPressed == true && px >= 0){
+      px -= 2;
+    }
+    if(rightPressed == true && px + pfw <= canvas.width){
+      px += 2;
+    }
+    if(spacePressed == true && by <= 0){
+      by = py + 30;
+      bx = px + 51.2 - 4.2;
+    }
+  }
+  else if(gameOver == true && gameOverRan == false){
+    setInterval(gameOverFlash,400);
+    gameOverRan = true;
+    document.getElementById("kills").style.fontSize = "200px";
+    document.getElementById("text").style.textAlign = 'center';
+    document.getElementById("text").style.position = 'fixed';
+    document.getElementById("text").style.top = '50%';
+    document.getElementById("text").style.marginTop = '-100px';
+    document.getElementById("kills").style.marginTop = '-15px';
+    document.getElementById("text").style.height = '200px';
+    document.getElementById("text2").style.visibility = 'hidden';
+    document.getElementById("kills").innerHTML = 'Game Over!';
+  }
+}
+
+function gameOverFlash(){
+  var alreadyRanFlash = false;
+  if(gameOverFrame == true && alreadyRanFlash == false){
+    document.getElementById("text").style.visibility = 'visible';
+    gameOverFrame = false;
+    alreadyRanFlash = true;
+  }
+  else if(gameOverFrame == false && alreadyRanFlash == false){
+    document.getElementById("text").style.visibility = 'hidden';
+    gameOverFrame = true;
+    alreadyRanFlash = true;
+  }
+}
+
+function collisionDetection(){
+  for(s = 1; s < sValues.length; s++){
+    sX = sValues[s][0];
+    sY = sValues[s][1];
+    if(sX <= px + pfw && sX >= px && sY >= py && sY <= py + pfh && alreadyHit == false){
+      lives--;
+      sValues = new Array(1);
+      clearInterval(shootBackInterval);
+      setTimeout(function(){ shootBackInterval = setInterval(shootBack,2000); }, 2000);
+      ex = px + (pfw/2 - ew/2);
+      ey = py - sfh/2;
+      drawExplosion();
+      px = -5000;
+      setTimeout(function(){ px = 0; }, 1400);
+      alreadyHit = true;
+    }
+  }
+  
+  if(lives <= 0){
+    gameOver = true;
+  }
+  
+  for(r = 0; r < rowcount; r++){
+    for(c = 0; c < columnCount; c++){
+      if(by <= bottomY - (r + 1)*(sfh + yGap) + sfh && by >= bottomY - (r + 1)*(sfh + yGap) && bx + 10 >= xOffset + (c + 1)*(sfw + xGap) - sfw + xShift && bx <= xOffset + (c + 1)*(sfw + xGap) + xShift && position[r][c] == true){
+        position[r][c] = false;
+      
+        dx = xOffset + xGap*(c + 1) + sfw*c + xShift;
+        dy = bottomY - (r + 1)*(sfh + yGap);
+        dValues.push([]);
+        dValues[dValues.length - 1][0] = dx;
+        dValues[dValues.length - 1][1] = dy;
+        displayED();
+        setTimeout(stopDisplay,250);
+        
+        by = -20;
+        if(costume[r] == 1){
+          score++;
+        }
+        if(costume[r] == 2){
+          score += 3;
+        }
+        if(costume[r] == 3){
+          score += 5;
+        }
+      }
+      if(bottomY - 20 - r*(sfh + yGap) >= 630 && position[r][c] == true){
+        gameOver = true;
+      }
+    }
+  }
+}
+
+function displayED(){
+  deadx = dx;
+  deady = dy;
+  enemyDead(255,255,255);
+}
+
+function stopDisplay(){
+  ctx2.clearRect(dValues[clearme][0] - 1,dValues[clearme][1] - 1,sfw + 2,sfh + 2);
+  clearme++;
+}
+
+function livesDisplay(){
+  ctx3.clearRect(0,0,livescanvas.width,livescanvas.height);
+  for(l = 0; l < lives; l++){
+    lx = (livescanvas.width/maxlives) * l;
+    ly = 10;
+    livesIcon();
+  }
+}
+
+function move(){
+  leftTrue = undefined;
+  for(c = 0; c < columnCount; c++){
+    for(r = 0; r < rowcount; r++){
+      if(position[r][c] == true && leftTrue == undefined){
+        leftTrue = c;
+      }
+    }
+  }
+  for(c = 0; c < columnCount; c++){
+    for(r = 0; r < rowcount; r++){
+      if(position[r][c] == true){
+        rightTrue = c + 1;
+      }
+    }
+  }
+
+  if(xOffset + rightTrue*(sfw + xGap) + xShift >= canvas.width - 20 && movedLast == false){
+    bottomY += sfho/1.5;
+    left = true;
+    right = false;
+    moved = true;
+    movedLast = true;
+  }
+  else if((xOffset + xGap + xShift)+((sfw + xGap)*leftTrue) <= 20 && firstMove == false && movedLast == false){
+    bottomY += sfho/1.5;
+    right = true;
+    left = false;
+    moved = true;
+    movedLast = true;
+  }
+  if(right == true && moved == false){
+    xShift += sfwo/2;
+    movedLast = false;
+  }
+  if(left == true && moved == false){
+    xShift -= sfwo/2;
+    movedLast = false;
+  }
+  if(spaceInvader1WalkV == true){
+    spaceInvader1WalkV = false;
+  }
+  else if(spaceInvader1WalkV == false){
+    spaceInvader1WalkV = true;
+  }
+  if(spaceInvader2WalkV == true){
+    spaceInvader2WalkV = false;
+  }
+  else if(spaceInvader2WalkV == false){
+    spaceInvader2WalkV = true;
+  }
+  if(spaceInvader3WalkV == true){
+    spaceInvader3WalkV = false;
+  }
+  else if(spaceInvader3WalkV == false){
+    spaceInvader3WalkV = true;
+  }
+  firstMove = false;
+  moved = false;
+}
+
+function shootBack(){
+  var okay = false;
+  while(okay == false){
+    shootRow = Math.floor(Math.random() * rowcount);
+    shootColumn = Math.floor(Math.random() * columnCount);
+    if(position[shootRow][shootColumn] == true){
+      okay = true;
+    }
+    else{
+      var testingArray = new Array(1);
+      var count = 0;
+      for(r = 0; r < rowcount; r++){
+        for(c = 0; c < columnCount; c++){
+          if(position[r][c] == true){
+            testingArray.push("true");
+          }
+        }
+      }
+      for(var l = 0; l < testingArray.length; l++){
+        if(testingArray[l] == "true"){
+          count++;
+        }
+      }
+      if(count == 0){
+        ctx2.clearRect(dValues[clearme - 1][0],dValues[clearme - 1][1],sfw,sfh);
+        okay = true;
+        allDead = true;
+        setup();
+      }
+    }
+  }
+  if(allDead != true){
+    sX = xOffset + xGap*(shootColumn + 1) + sfw*shootColumn + xShift + sfw/2;
+    sY = bottomY - (shootRow + 1)*(sfh + yGap) + sfh/2;
+  }
+  sValues.push([]);
+  sValues[sValues.length - 1][0] = sX;
+  sValues[sValues.length - 1][1] = sY;
+  alreadyHit = false;
+}
+
+function keyPressed(){
+  if(event.keyCode == 97 || event.keyCode == 65 || event.keyCode ==  37){
+    leftPressed = true;
+  }
+  if(event.keyCode == 100 || event.keyCode == 68 || event.keyCode ==  39){
+    rightPressed = true;
+  }
+  if(event.keyCode == 32){
+    spacePressed = true;
+  }
+}
+
+function keyReleased(){
+  if(event.keyCode == 97 || event.keyCode == 65 || event.keyCode ==  37){
+    leftPressed = false;
+  }
+  if(event.keyCode == 100 || event.keyCode == 68 || event.keyCode ==  39){
+    rightPressed = false;
+  }  
+  if(event.keyCode == 32){
+    spacePressed = false;
+  }
+}
+
+function player(){
+  ctx.fillStyle = 'rgb(0,255,0)';
+  ctx.beginPath();
+  ctx.rect(px + 60*pw,py,pbw,pbh);
+  ctx.rect(px + 50*pw,py + 10*ph,pbw,pbh);
+  ctx.rect(px + 60*pw,py + 10*ph,pbw,pbh);
+  ctx.rect(px + 70*pw,py + 10*ph,pbw,pbh);
+  ctx.rect(px + 50*pw,py + 20*ph,pbw,pbh);
+  ctx.rect(px + 60*pw,py + 20*ph,pbw,pbh);
+  ctx.rect(px + 70*pw,py + 20*ph,pbw,pbh);
+  for(a = 10; a < 120; a += 10){
+    ctx.rect(px + a*pw,py + 30*ph,pbw,pbh);    
+  }
+  for(a = 40; a < 70; a += 10){
+    for(b = 0; b < 130; b += 10){
+      ctx.rect(px + b*pw,py + a*ph,pbw,pbh);    
+    }  
+  }
+  ctx.fill();
+}
+
+function livesIcon(){
+  ctx3.fillStyle = 'rgb(0,255,0)';
+  ctx3.beginPath();
+  ctx3.rect(lx + 60*lw,ly,lbw,lbh);
+  ctx3.rect(lx + 50*lw,ly + 10*lh,lbw,lbh);
+  ctx3.rect(lx + 60*lw,ly + 10*lh,lbw,lbh);
+  ctx3.rect(lx + 70*lw,ly + 10*lh,lbw,lbh);
+  ctx3.rect(lx + 50*lw,ly + 20*lh,lbw,lbh);
+  ctx3.rect(lx + 60*lw,ly + 20*lh,lbw,lbh);
+  ctx3.rect(lx + 70*lw,ly + 20*lh,lbw,lbh);
+  for(a = 10; a < 120; a += 10){
+    ctx3.rect(lx + a*lw,ly + 30*lh,lbw,lbh);    
+  }
+  for(a = 40; a < 70; a += 10){
+    for(b = 0; b < 130; b += 10){
+      ctx3.rect(lx + b*lw,ly + a*lh,lbw,lbh);    
+    }  
+  }
+  ctx3.fill();
+}
+
+function bullet(){
+  ctx.beginPath();
+  ctx.fillStyle = 'rgb(0,255,0)';
+  ctx.rect(bx,by,10*bbw,20*bbh);
+  ctx.fill();
+}
+
+function enemyBullet(r,g,b){  
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  ctx.rect(sX + 20*ebw,sY,ebbw,ebbh);
+  ctx.rect(sX + 10*ebw,sY + 10*ebh,ebbw,ebbh);
+  ctx.rect(sX,sY + 20*ebh,ebbw,ebbh);
+  ctx.rect(sX + 10*ebw,sY + 30*ebh,ebbw,ebbh);
+  ctx.rect(sX + 20*ebw,sY + 40*ebh,ebbw,ebbh);
+  ctx.rect(sX + 10*ebw,sY + 50*ebh,ebbw,ebbh);
+  ctx.rect(sX,sY + 60*ebh,ebbw,ebbh);
+  ctx.fill();
+}
+
+function drawEnemyBullet(){
+  for(s = 1; s < sValues.length; s++){
+    sX = sValues[s][0];
+    sY = sValues[s][1];
+    enemyBullet(255,255,255);
+  }
+}
+
+function enemyDead(r,g,b){
+  ctx2.fillStyle = 'rgba('+r+','+g+','+b+')';
+  ctx2.beginPath();
+  ctx2.rect(deadx + 40*w2,deady,bw2,bh2);
+  ctx2.rect(deadx + 80*w2,deady,bw2,bh2);
+  ctx2.rect(deadx + 10*w2,deady + 10*h2,bw2,bh2);
+  ctx2.rect(deadx + 50*w2,deady + 10*h2,bw2,bh2);
+  ctx2.rect(deadx + 70*w2,deady + 10*h2,bw2,bh2);
+  ctx2.rect(deadx + 110*w2,deady + 10*h2,bw2,bh2);
+  ctx2.rect(deadx + 20*w2,deady + 20*h2,bw2,bh2);
+  ctx2.rect(deadx + 100*w2,deady + 20*h2,bw2,bh2);
+  ctx2.rect(deadx + 30*w2,deady + 30*h2,bw2,bh2);
+  ctx2.rect(deadx + 90*w2,deady + 30*h2,bw2,bh2);
+  ctx2.rect(deadx,deady + 40*h2,bw2,bh2);
+  ctx2.rect(deadx + 10*w2,deady + 40*h2,bw2,bh2);
+  ctx2.rect(deadx + 110*w2,deady + 40*h2,bw2,bh2);
+  ctx2.rect(deadx + 120*w2,deady + 40*h2,bw2,bh2);
+  ctx2.rect(deadx + 30*w2,deady + 50*h2,bw2,bh2);
+  ctx2.rect(deadx + 90*w2,deady + 50*h2,bw2,bh2);
+  ctx2.rect(deadx + 20*w2,deady + 60*h2,bw2,bh2);
+  ctx2.rect(deadx + 100*w2,deady + 60*h2,bw2,bh2);
+  ctx2.rect(deadx + 10*w2,deady + 70*h2,bw2,bh2);
+  ctx2.rect(deadx + 50*w2,deady + 70*h2,bw2,bh2);
+  ctx2.rect(deadx + 70*w2,deady + 70*h2,bw2,bh2);
+  ctx2.rect(deadx + 110*w2,deady + 70*h2,bw2,bh2);
+  ctx2.rect(deadx + 40*w2,deady + 80*h2,bw2,bh2);
+  ctx2.rect(deadx + 80*w2,deady + 80*h2,bw2,bh2);
+  ctx2.fill();
+}
+
+function Frame1(){
+  ctx2.drawImage(EF1,ex,ey,ew,eh);
+}
+function Frame2(){
+  ctx2.drawImage(EF2,ex,ey,ew,eh);
+}
+function Frame3(){
+  ctx2.drawImage(EF3,ex,ey,ew,eh);
+}
+function Frame4(){
+  ctx2.drawImage(EF4,ex,ey,ew,eh);
+}
+function Frame5(){
+  ctx2.drawImage(EF5,ex,ey,ew,eh);
+}
+function Frame6(){
+  ctx2.drawImage(EF6,ex,ey,ew,eh);
+}
+function Frame7(){
+  ctx2.drawImage(EF7,ex,ey,ew,eh);
+}
+function Frame8(){
+  ctx2.drawImage(EF8,ex,ey,ew,eh);
+}
+function Frame9(){
+  ctx2.drawImage(EF9,ex,ey,ew,eh);
+}
+function Frame10(){
+  ctx2.drawImage(EF10,ex,ey,ew,eh);
+}
+function Frame11(){
+  ctx2.drawImage(EF11,ex,ey,ew,eh);
+}
+function Frame12(){
+  ctx2.drawImage(EF12,ex,ey,ew,eh);
+}
+
+function startFrame1(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame1();
+}
+function startFrame2(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame2();
+}
+function startFrame3(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame3();
+}
+function startFrame4(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame4();
+}
+
+function startFrame5(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame5();
+}
+
+function startFrame6(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame6();
+}
+
+function startFrame7(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame7();
+}
+
+function startFrame8(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame8();
+}
+
+function startFrame9(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame9();
+}
+
+function startFrame10(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame10();
+}
+
+function startFrame11(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame11();
+}
+
+function startFrame12(){
+  ctx2.clearRect(0,0,canvas.width,canvas.height);
+  Frame12();
+}
+
+function drawExplosion(){
+  setTimeout(startFrame1,100);
+  setTimeout(startFrame2,200);
+  setTimeout(startFrame3,300);
+  setTimeout(startFrame4,400);
+  setTimeout(startFrame5,500);
+  setTimeout(startFrame6,600);
+  setTimeout(startFrame7,700);
+  setTimeout(startFrame8,800);
+  setTimeout(startFrame9,900);
+  setTimeout(startFrame10,1000);
+  setTimeout(startFrame11,1100);
+  setTimeout(startFrame12,1200);
+  setTimeout(function(){ctx2.clearRect(ex,ey,ew,eh);},1300);
+}
+
+function spaceInvader1(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  for(i = 0; i < 4; i++){
+    ctx.rect(x + 40*w3 + i*10*w3,y + 5*h3,bw3,bh3);
+  }
+  for(i = 0; i < 10; i++){
+    ctx.rect(x + 10*w3 + i*10*w3,y + 15*h3,bw3,bh3);
+  }
+  for(i = 0; i < 12; i++){
+    ctx.rect(x + i*10*w3,y + 25*h3,bw3,bh3);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + i*10*w3,y + 35*h3,bw3,bh3);
+  }
+  ctx.rect(x + 50*w3,y + 35*h3,bw3,bh3);
+  ctx.rect(x + 60*w3,y + 35*h3,bw3,bh3);
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 90*w3 + i*10*w3,y + 35*h3,bw3,bh3);
+  }
+  for(i = 0; i < 12; i++){
+    ctx.rect(x + i*10*w3,y + 45*h3,bw3,bh3);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 20*w3 + i*10*w3,y + 55*h3,bw3,bh3);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 70*w3 + i*10*w3,y + 55*h3,bw3,bh3);
+  }
+  ctx.rect(x + 10*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 20*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 50*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 60*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 90*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 100*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 20*w3,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 30*w3,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 80*w3,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 90*w3,y + 75*h3,bw3,bh3);
+  ctx.fill();
+}
+
+function spaceInvader1Walk(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  for(i = 0; i < 4; i++){
+    ctx.rect(x + 40*w3 + i*10*w3,y + 5*h3,bw3,bh3);
+  }
+  for(i = 0; i < 10; i++){
+    ctx.rect(x + 10*w3 + i*10*w3,y + 15*h3,bw3,bh3);
+  }
+  for(i = 0; i < 12; i++){
+    ctx.rect(x + i*10*w3,y + 25*h3,bw3,bh3);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + i*10*w3,y + 35*h3,bw3,bh3);
+  }
+  ctx.rect(x + 50*w3,y + 35*h3,bw3,bh3);
+  ctx.rect(x + 60*w3,y + 35*h3,bw3,bh3);
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 90*w3 + i*10*w3,y + 35*h3,bw3,bh3);
+  }
+  for(i = 0; i < 12; i++){
+    ctx.rect(x + i*10*w3,y + 45*h3,bw3,bh3);
+  }  
+  ctx.rect(x + 30*w3,y + 55*h3,bw3,bh3);
+  ctx.rect(x + 40*w3,y + 55*h3,bw3,bh3);
+  ctx.rect(x + 70*w3,y + 55*h3,bw3,bh3);
+  ctx.rect(x + 80*w3,y + 55*h3,bw3,bh3);
+  ctx.rect(x + 20*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 30*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 50*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 60*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 80*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x + 90*w3,y + 65*h3,bw3,bh3);
+  ctx.rect(x,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 10*w3,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 100*w3,y + 75*h3,bw3,bh3);
+  ctx.rect(x + 110*w3,y + 75*h3,bw3,bh3);
+  ctx.fill();
+}
+
+function spaceInvader2(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  ctx.rect(x + 20*w,y,bw,bh);
+  ctx.rect(x + 80*w,y,bw,bh);
+  ctx.rect(x + 30*w,y + 10*h,bw,bh);
+  ctx.rect(x + 70*w,y + 10*h,bw,bh);
+  for(i = 0; i < 7; i++){
+    ctx.rect(x + 20*w + i*10*w,y + 20*h,bw,bh);
+  }
+  ctx.rect(x + 10*w,y + 30*h,bw,bh);
+  ctx.rect(x + 20*w,y + 30*h,bw,bh);
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 40*w + i*10*w,y + 30*h,bw,bh);
+  }
+  ctx.rect(x + 80*w,y + 30*h,bw,bh);
+  ctx.rect(x + 90*w,y + 30*h,bw,bh);
+  for(i = 0; i < 11; i++){
+    ctx.rect(x + i*10*w,y + 40*h,bw,bh);
+  }
+  ctx.rect(x,y + 50*h,bw,bh);
+  for(i = 0; i < 7; i++){
+    ctx.rect(x + 20*w + i*10*w,y + 50*h,bw,bh);
+  }
+  ctx.rect(x + 100*w,y + 50*h,bw,bh);
+  ctx.rect(x,y + 60*h,bw,bh);
+  ctx.rect(x + 20*w,y + 60*h,bw,bh);
+  ctx.rect(x + 80*w,y + 60*h,bw,bh);
+  ctx.rect(x + 100*w,y + 60*h,bw,bh);
+  ctx.rect(x + 30*w,y + 70*h,bw,bh);
+  ctx.rect(x + 40*w,y + 70*h,bw,bh);
+  ctx.rect(x + 60*w,y + 70*h,bw,bh);
+  ctx.rect(x + 70*w,y + 70*h,bw,bh);
+  ctx.fill();
+}
+
+function spaceInvader2Walk(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  ctx.rect(x + 20*w,y,bw,bh);
+  ctx.rect(x + 80*w,y,bw,bh);
+  ctx.rect(x,y + 10*h,bw,bh);
+  ctx.rect(x + 30*w,y + 10*h,bw,bh);
+  ctx.rect(x + 70*w,y + 10*h,bw,bh);
+  ctx.rect(x + 100*w,y + 10*h,bw,bh);
+  ctx.rect(x,y + 20*h,bw,bh);
+  for(i = 0; i < 7; i++){
+    ctx.rect(x + 20*w + i*10*w,y + 20*h,bw,bh);
+  }
+  ctx.rect(x + 100*w,y + 20*h,bw,bh);
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + i*10*w,y + 30*h,bw,bh);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 40*w + i*10*w,y + 30*h,bw,bh);
+  }
+  for(i = 0; i < 3; i++){
+    ctx.rect(x + 80*w + i*10*w,y + 30*h,bw,bh);
+  }
+  for(i = 0; i < 11; i++){
+    ctx.rect(x + i*10*w,y + 40*h,bw,bh);
+  }
+  for(i = 0; i < 9; i++){
+    ctx.rect(x + 10*w + i*10*w,y + 50*h,bw,bh);
+  }
+  ctx.rect(x + 20*w,y + 60*h,bw,bh);
+  ctx.rect(x + 80*w,y + 60*h,bw,bh);
+  ctx.rect(x + 10*w,y + 70*h,bw,bh);
+  ctx.rect(x + 90*w,y + 70*h,bw,bh);
+  ctx.fill();
+}
+
+function spaceInvader3(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  ctx.rect(x + 45*w,y,bw,bh);
+  ctx.rect(x + 55*w,y,bw,bh);
+  for(i = 0; i < 4; i++){
+    ctx.rect(x + 35*w + i*10*w,y + 10*h,bw,bh);
+  }
+  for(i = 0; i < 6; i++){
+    ctx.rect(x + 25*w + i*10*w,y + 20*h,bw,bh);
+  }
+  ctx.rect(x + 15*w,y + 30*h,bw,bh);
+  ctx.rect(x + 25*w,y + 30*h,bw,bh);
+  ctx.rect(x + 45*w,y + 30*h,bw,bh);
+  ctx.rect(x + 55*w,y + 30*h,bw,bh);
+  ctx.rect(x + 75*w,y + 30*h,bw,bh);
+  ctx.rect(x + 85*w,y + 30*h,bw,bh);
+  for(i = 0; i < 8; i++){
+    ctx.rect(x + 15*w + i*10*w,y + 40*h,bw,bh);
+  }
+  ctx.rect(x + 25*w,y + 50*h,bw,bh);
+  ctx.rect(x + 45*w,y + 50*h,bw,bh);
+  ctx.rect(x + 55*w,y + 50*h,bw,bh);
+  ctx.rect(x + 75*w,y + 50*h,bw,bh);
+  ctx.rect(x + 15*w,y + 60*h,bw,bh);
+  ctx.rect(x + 85*w,y + 60*h,bw,bh);
+  ctx.rect(x + 25*w,y + 70*h,bw,bh);
+  ctx.rect(x + 75*w,y + 70*h,bw,bh);
+  ctx.fill();
+}
+
+function spaceInvader3Walk(r,g,b){
+  ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+  ctx.beginPath();
+  ctx.rect(x + 45*w,y,bw,bh);
+  ctx.rect(x + 55*w,y,bw,bh);
+  for(i = 0; i < 4; i++){
+    ctx.rect(x + 35*w + i*10*w,y + 10*h,bw,bh);
+  }
+  for(i = 0; i < 6; i++){
+    ctx.rect(x + 25*w + i*10*w,y + 20*h,bw,bh);
+  }
+  ctx.rect(x + 15*w,y + 30*h,bw,bh);
+  ctx.rect(x + 25*w,y + 30*h,bw,bh);
+  ctx.rect(x + 45*w,y + 30*h,bw,bh);
+  ctx.rect(x + 55*w,y + 30*h,bw,bh);
+  ctx.rect(x + 75*w,y + 30*h,bw,bh);
+  ctx.rect(x + 85*w,y + 30*h,bw,bh);
+  for(i = 0; i < 8; i++){
+    ctx.rect(x + 15*w + i*10*w,y + 40*h,bw,bh);
+  }
+  ctx.rect(x + 35*w,y + 50*h,bw,bh);
+  ctx.rect(x + 65*w,y + 50*h,bw,bh);
+  ctx.rect(x + 25*w,y + 60*h,bw,bh);
+  ctx.rect(x + 45*w,y + 60*h,bw,bh);
+  ctx.rect(x + 55*w,y + 60*h,bw,bh);
+  ctx.rect(x + 75*w,y + 60*h,bw,bh);
+  ctx.rect(x + 15*w,y + 70*h,bw,bh);
+  ctx.rect(x + 35*w,y + 70*h,bw,bh);
+  ctx.rect(x + 65*w,y + 70*h,bw,bh);
+  ctx.rect(x + 85*w,y + 70*h,bw,bh);
+  ctx.fill();
+}
+
+//function speedUp(){ //remove for no speed up
+//  moveTime -= 1;
+//  clearInterval(moveTimer);
+//  setInterval(move,moveTime);
+//}
+
+document.addEventListener("keydown", keyPressed);
+document.addEventListener("keyup", keyReleased);
+
+//var moveTimer = setInterval(move,400); // remove these 2 lines for no speed up
+//setInterval(speedUp,2000);
+</script>
+</html>
