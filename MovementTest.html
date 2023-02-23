@@ -1,0 +1,64 @@
+<html>
+<head>
+<style>
+    #canvas {
+        position: fixed;
+        left: 0;
+        top: 0;
+        border: 2px solid black;
+    }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+
+<script src="/socket.io/socket.io.js"></script> <!-- include socket.io client side script -->
+<script>
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth - 4;
+canvas.height = window.innerHeight - 4;
+
+const socket = io(); //load socket.io-client and connect to the host that servers the page
+
+socket.on("data", (data) => {
+    console.log(data);
+    move(data);
+});
+
+const timer = setTimeout(draw, 1);
+
+const spriteWidth = 50;
+const spriteHeight = 50;
+
+let x = (canvas.width - spriteWidth)/2;
+let y = (canvas.height - spriteHeight)/2;
+
+function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.beginPath();
+    ctx.fillStyle = 'rgb(255,0,0)';
+    ctx.ellipse(x, y, spriteWidth, spriteHeight, 2*Math.PI, 0, 2*Math.PI);
+    ctx.fill();
+}
+
+function move(input) {
+    if (input == 'w') {
+        y -= 20;
+    } else if (input == 'a') {
+        x -= 20;
+    } else if (input == 's') {
+        y += 20;
+    } else if (input == 'd') {
+        x += 20;
+    }
+    draw();
+}
+
+
+
+draw();
+</script>
+</html>
