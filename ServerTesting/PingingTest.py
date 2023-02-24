@@ -66,8 +66,6 @@ def plotNormal(data, bins=10, title="data", xtitle="Responce Time (ms)"):
     plt.plot(x, p, 'k', linewidth=2)
     plt.show()
 
-
-
 def timeToDigit(timeStr):
     #timeStr is in the form mm:ss:ffffff
     #returning time as ss.ffffff
@@ -76,8 +74,6 @@ def timeToDigit(timeStr):
     microseconds = float(timeStr.split(":")[2]) * 0.000001
 
     return minutes + seconds + microseconds
-
-
 
 def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000):
 
@@ -114,10 +110,6 @@ def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, serv
    #ax2.legend(loc='upper right')
 
     plt.show()
-
-
-    
-
 
 def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 
@@ -157,10 +149,8 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
     return Pulses
 
 
-loops = 100
-pause_time = 0.1
-server_name = "localhost"
-server_port = 12000
+
+
 
 #data = processData(timeAnalysis(loops, pause_time, server_name, server_port))
 #print(data)
@@ -171,13 +161,19 @@ server_port = 12000
 
 #plotPulses(data)
 #toPlot = "Client-Server Time"
-toPlot = "Round Trip Time"
 #print(data[toPlot])
 #plotNormal(data[toPlot], 20, toPlot)
 
+toPlot = "Round Trip Time"
+minFreq = 5
+highFreq = 100
+steps = 100
+samples = 100
+server_name = "146.169.236.175"
+server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
-frequencySweep(toPlot, 0.5, 1000, 100, 40)
+frequencySweep(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
 
 
 
