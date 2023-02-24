@@ -82,12 +82,13 @@ def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, serv
     #f = 1/t, thus every 0.1s = 10 Hz.
     #numSamples determines how many increments to take
     #The output is the mean responce time per frequency
-    increment = (top-bottom)/top * steps
+    increment = (top-bottom)/steps
     frequencies = []
     means = []
     stds = []
     for i in range(steps):
         frequency = bottom + increment * i
+        print(frequency)
         frequencies.append(frequency)
         mu, std = norm.fit(processData(timeAnalysis(numSamples, (1/frequency), server_name, server_port))[criteria])
         means.append(mu)
@@ -127,7 +128,7 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 
         #create the message to the server, the current time is stored, all we need from it
         #is the time it recieves the message
-        msg = complexity
+        msg = str(1/pause_time)
 
         client_socket.sendto(msg.encode(),(server_name, server_port))
 
@@ -165,15 +166,16 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 #plotNormal(data[toPlot], 20, toPlot)
 
 toPlot = "Round Trip Time"
-minFreq = 5
-highFreq = 100
-steps = 100
-samples = 100
+minFreq = 10
+highFreq = 2000
+steps = 10
+samples = 20
 server_name = "146.169.236.175"
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
 frequencySweep(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
+print("stopped")
 
 
 
