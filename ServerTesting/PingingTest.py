@@ -166,11 +166,11 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 #plotNormal(data[toPlot], 20, toPlot)
 
 toPlot = "Round Trip Time"
-minFreq = 10
-highFreq = 2000
-steps = 10
-samples = 20
-server_name = "146.169.236.175"
+minFreq = 100
+highFreq = 20000
+steps = 50
+samples = 50
+server_name = "146.169.185.96"
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
