@@ -149,7 +149,42 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
     client_socket.close()
     return Pulses
 
+def timeAnalysisTCP(loops, pause_time, server_name, server_port, complexity='0'):
 
+    Pulses = {}
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print("UDP client running...")
+    print("Connecting to server at IP: ", server_name, " PORT: ", server_port)
+
+
+    for i in range (loops):
+
+        #create the initial pulse with time stamp
+        newEntry = {"Start Time": dt.now().strftime("%M:%S:%f")} 
+
+        #create the message to the server, the current time is stored, all we need from it
+        #is the time it recieves the message
+        msg = str(1/pause_time)
+
+        client_socket.connect((server_name, server_port))
+
+        #return values from the server
+        msg, sadd = client_socket.recvfrom(1024)
+        newEntry["Return Time"] = dt.now().strftime("%M:%S:%f")
+
+        processing = msg.decode().split("#")
+        #show output and wait for a small time to space apart the pulses
+        newEntry["Recieved Time"] = processing[0]
+        newEntry["Sending Time"] = processing[1]
+ 
+
+        Pulses[i] = newEntry
+
+        t.sleep(pause_time)
+
+    client_socket.close()
+    return Pulses
 
 
 
@@ -167,23 +202,12 @@ def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 
 toPlot = "Round Trip Time"
 minFreq = 100
-highFreq = 20000
+highFreq = 2000
 steps = 50
-samples = 50
-server_name = "146.169.185.96"
+samples = 15
+server_name = "146.169.236.175"
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
 frequencySweep(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
 print("stopped")
-
-
-
-
-
-
-
-
-
-
-
