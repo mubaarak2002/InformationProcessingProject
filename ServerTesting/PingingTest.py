@@ -112,6 +112,44 @@ def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, serv
 
     plt.show()
 
+def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000):
+
+
+    #this function takes a parameter and sweeps accross a certain refresh rate
+    #f = 1/t, thus every 0.1s = 10 Hz.
+    #numSamples determines how many increments to take
+    #The output is the mean responce time per frequency
+    increment = (top-bottom)/steps
+    frequencies = []
+    means = []
+    stds = []
+    for i in range(steps):
+        frequency = bottom + increment * i
+        print(frequency)
+        frequencies.append(frequency)
+        mu, std = norm.fit(processData(timeAnalysisTCP(numSamples, (1/frequency), server_name, server_port))[criteria])
+        means.append(mu)
+        stds.append(std)
+
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+
+    ax1.plot(frequencies, means, 'r', label = "Sample Means")
+    ax2.plot(frequencies, stds, 'b', label = "Standard Deviations")
+
+    title = "Mean " + criteria + " over Varying Pinging Frequencies from {:.2f} Hz to {:.2f} Hz".format(bottom, top)
+    plt.title(title)
+    plt.xlabel("Frequency")
+    ax1.set_ylabel('Mean Responce Time (ms)', color='r')
+    ax2.set_ylabel('Standard Deviation of Sample (ms)', color='b')
+
+
+    ax1.legend(loc='upper right')
+   #ax2.legend(loc='upper right')
+
+    plt.show()
+
+
 def timeAnalysis(loops, pause_time, server_name, server_port, complexity='0'):
 
     Pulses = {}
@@ -157,7 +195,8 @@ def timeAnalysisTCP(loops, pause_time, server_name, server_port, complexity='0')
     print("UDP client running...")
     print("Connecting to server at IP: ", server_name, " PORT: ", server_port)
 
-
+    
+    client_socket.connect((server_name, server_port))
     for i in range (loops):
 
         #create the initial pulse with time stamp
@@ -166,11 +205,10 @@ def timeAnalysisTCP(loops, pause_time, server_name, server_port, complexity='0')
         #create the message to the server, the current time is stored, all we need from it
         #is the time it recieves the message
         msg = str(1/pause_time)
-
-        client_socket.connect((server_name, server_port))
+        client_socket.send(msg.encode())
 
         #return values from the server
-        msg, sadd = client_socket.recvfrom(1024)
+        msg = client_socket.recv(1024)
         newEntry["Return Time"] = dt.now().strftime("%M:%S:%f")
 
         processing = msg.decode().split("#")
@@ -206,8 +244,8 @@ highFreq = 2000
 steps = 50
 samples = 15
 server_name = "146.169.236.175"
-server_port = 12000
+server_port = 13000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
-frequencySweep(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
+frequencySweepTCP(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
 print("stopped")
