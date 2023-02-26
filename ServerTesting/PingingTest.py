@@ -123,13 +123,24 @@ def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, s
     frequencies = []
     means = []
     stds = []
+
+    
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print("TCP client running...")
+    print("Connecting to server at IP: ", server_name, " PORT: ", server_port)
+
+    
+    client_socket.connect((server_name, server_port))
+
     for i in range(steps):
         frequency = bottom + increment * i
         print(frequency)
         frequencies.append(frequency)
-        mu, std = norm.fit(processData(timeAnalysisTCP(numSamples, (1/frequency), server_name, server_port))[criteria])
+        mu, std = norm.fit(processData(timeAnalysisTCP(numSamples, (1/frequency), server_name, server_port, client_socket))[criteria])
         means.append(mu)
         stds.append(std)
+    
+    client_socket.close()
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
@@ -186,16 +197,10 @@ def timeAnalysisUDP(loops, pause_time, server_name, server_port, complexity='0')
     client_socket.close()
     return Pulses
 
-def timeAnalysisTCP(loops, pause_time, server_name, server_port, complexity='0'):
+def timeAnalysisTCP(loops, pause_time, server_name, server_port, client_socket, complexity='0'):
 
     Pulses = {}
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("TCP client running...")
-    print("Connecting to server at IP: ", server_name, " PORT: ", server_port)
-
-    
-    client_socket.connect((server_name, server_port))
     for i in range (loops):
 
         #create the initial pulse with time stamp
@@ -222,7 +227,7 @@ def timeAnalysisTCP(loops, pause_time, server_name, server_port, complexity='0')
 
         t.sleep(pause_time)
 
-    client_socket.close()
+    
     return Pulses
 
 
