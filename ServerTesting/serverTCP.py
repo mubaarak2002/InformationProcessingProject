@@ -16,20 +16,25 @@ print('TCP Server running on port ', server_port)
 
 #Now the loop that listens from clients
 #For each incoming client, a seperate TCP connection is established via a connection_socket
- 
+
 while True:
+
     connection_socket, caddr = welcome_socket.accept()
-    #notice recv and send instead of recvto and sendto
-    #this is because the 'to' part is now implicit in the connection_socket
-
-    cmsg = connection_socket.recv(1024)  	
-    cmsg = cmsg.decode()
-    part1 = dt.now().strftime("%M:%S:%f")
-
-    print("This is Ping Number " + cmsg)
+    while True:
+        print("starting")   
     
-    part2 = dt.now().strftime("%M:%S:%f")
-    cmsg = part1 + "#" + part2
-    #send reply message to the client process   
-    connection_socket.send(cmsg.encode())
+        #notice recv and send instead of recvto and sendto
+        #this is because the 'to' part is now implicit in the connection_socket
+
+        cmsg = connection_socket.recv(1024)  	
+        cmsg = cmsg.decode()
+        part1 = dt.now().strftime("%M:%S:%f")
+
+        print("This is Ping Number " + cmsg)
+        
+        part2 = dt.now().strftime("%M:%S:%f")
+        cmsg = part1 + "#" + part2
+        #send reply message to the client process   
+        connection_socket.send(cmsg.encode())
+        print("message Sent")
 
