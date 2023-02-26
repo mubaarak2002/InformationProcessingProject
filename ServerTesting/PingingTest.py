@@ -249,7 +249,7 @@ minFreq = 100
 highFreq = 4000
 steps = 100
 samples = 50
-server_name = '80.7.96.89'
+server_name = ''
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
