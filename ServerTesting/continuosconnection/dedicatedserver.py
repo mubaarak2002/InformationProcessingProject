@@ -1,6 +1,7 @@
 import socket
 import os
 from _thread import *
+from datetime import datetime as dt
 
 ServerSideSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -28,8 +29,15 @@ def multi_threaded_client(connection):
    
 while True:
     Client, address = ServerSideSocket.accept()
-    print('Connected to: ' + address[0] + ':' + str(address[1]))
+    cmsg, cadd = ServerSideSocket.recv(1024)
+    cmsg = cmsg.decode()
     start_new_thread(multi_threaded_client, (Client, ))
     ThreadCount += 1
-    print('Thread Number: ' + str(ThreadCount))
+    part1 = dt.now().strftime("%M:%S:%f")
+    
+    print("This is Ping Number " + cmsg)
+
+    part2 = dt.now().strftime("%M:%S:%f")
+    cmsg = part1 + "#" + part2
+    #send reply message to the client process 
 ServerSideSocket.close()
