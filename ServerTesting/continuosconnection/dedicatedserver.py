@@ -2,7 +2,7 @@ import socket
 import os
 from _thread import *
 ServerSideSocket = socket.socket()
-host = '80.7.96.89'
+host = '0.0.0.0'
 port = 12000
 ThreadCount = 0
 try:
