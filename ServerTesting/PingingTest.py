@@ -246,10 +246,10 @@ def timeAnalysisTCP(loops, pause_time, server_name, server_port, client_socket, 
 
 toPlot = "Round Trip Time"
 minFreq = 100
-highFreq = 2000
-steps = 50
-samples = 15
-server_name = 'localhost'
+highFreq = 4000
+steps = 100
+samples = 50
+server_name = '80.7.96.89'
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
