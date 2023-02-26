@@ -2,7 +2,7 @@ import socket
 #the server name and port
 #the server is on the same computer as the client
 
-server_name = '80.7.96.89'
+server_name = '81.141.109.188'
 server_port = 12000
 
 #create a TCP client socket
