@@ -75,7 +75,7 @@ def timeToDigit(timeStr):
 
     return minutes + seconds + microseconds
 
-def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000):
+def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='192.168.86.34', server_port=12000):
 
 
     #this function takes a parameter and sweeps accross a certain refresh rate
