@@ -73,7 +73,7 @@ export default class Game {
     if (this.gamestate === GAMESTATE.PAUSED) {
       ctx.rect(0, 0, this.gameWidth, this.gameHeight);
       ctx.fillStyle = "rgba(0,0,0,0.5";
-      ctx.fille();
+      ctx.fill();
 
       ctx.font = "30px Arial";
       ctx.fillStyle = "white";
@@ -84,7 +84,7 @@ export default class Game {
     if (this.gamestate === GAMESTATE.MENU) {
       ctx.rect(0, 0, this.gameWidth, this.gameHeight);
       ctx.fillStyle = "rgba(0,0,0,0.1";
-      ctx.fille();
+      ctx.fill();
 
       ctx.font = "30px Arial";
       ctx.fillStyle = "white";
@@ -99,7 +99,7 @@ export default class Game {
     if (this.gamestate === GAMESTATE.GAMEOVER) {
       ctx.rect(0, 0, this.gameWidth, this.gameHeight);
       ctx.fillStyle = "rgba(0,0,0,0.1";
-      ctx.fille();
+      ctx.fill();
 
       ctx.font = "30px Arial";
       ctx.fillStyle = "white";
