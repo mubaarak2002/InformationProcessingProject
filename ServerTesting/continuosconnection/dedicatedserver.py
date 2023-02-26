@@ -2,8 +2,8 @@ import socket
 import os
 from _thread import *
 ServerSideSocket = socket.socket()
-host = '127.0.0.1'
-port = 2004
+host = '80.7.96.89'
+port = 12000
 ThreadCount = 0
 try:
     ServerSideSocket.bind((host, port))

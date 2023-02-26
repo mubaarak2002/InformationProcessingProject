@@ -1,7 +1,7 @@
 import socket
 ClientMultiSocket = socket.socket()
-host = '127.0.0.1'
-port = 2004
+host = '80.7.96.89'
+port = 12000
 print('Waiting for connection response')
 try:
     ClientMultiSocket.connect((host, port))
