@@ -6,6 +6,7 @@ import numpy as np
 import socket
 import statistics as stats
 from matplotlib.widgets import Slider, Button
+import json
 
 def processData(impulses):
     #plots all the impulses
@@ -312,67 +313,54 @@ def graph2OnOne(x, y1, y2, chartTitle, xTitle, y1Title, y2Title, y1colour='r', y
     
 def normalSliders(x, y1, y2, chartTitle, xTitle, y1Title, y2Title, y1colour='r', y2colour='b'):
     #y1 and y2 need to be in the form {frequency: [samples]}, in order for the mean to be calculated
+    
+   
+    mu1, std1 = norm.fit(y1[x[0]])
+    mu2, std2 = norm.fit(y2[x[0]])
+    print(plt.xlim())
+    xSpace = np.linspace(0, 100, 100)
+    p = norm.pdf(xSpace, mu1, std1)
+    q = norm.pdf(xSpace, mu2, std2)
+
     fig, ax = plt.subplots()
+    fig.subplots_adjust(bottom=0.25)
+    l1, = ax.plot(xSpace, p, lw=2)
+    l2, = ax.plot(xSpace, q, lw=2)
 
-    def getParams(frequency, data1, data2):
-        mu1, std1 = norm.fit(data1[frequency])
-        mu2, std2 = norm.fit(data2[frequency])
-        xmin, xmax = plt.xlim()
-        x = np.linspace(xmin, xmax, 100)
-        p1 = norm.pdf(x, mu1, std1)
-        p2 = norm.pdf(x, mu2, std2)
-        return [x, p1, p2]
+    ax_freq = fig.add_axes([0.25, 0.1, 0.65, 0.03])
 
-    plotNormal(y1[x[0]])
-    #plotting initial values:
-    line1 = ax.plot(getParams(x[0], y1, y2)[0], getParams(x[0], y1, y2)[1], y1colour, label = y1Title)
-    line2 = ax.plot(getParams(x[0], y1, y2)[0], getParams(x[0], y1, y2)[2], y2colour, label = y2Title)
+    # define the values to use for snapping
+    allowed_amplitudes = x
 
-    # adjust the main plot to make room for the sliders
-    fig.subplots_adjust(left=0.25, bottom=0.25)
+    sfreq = Slider(
+    ax_freq, "Frequency", x[0], x[len(x)-1],
+    valinit=x[1], valstep=(x[1]-x[0]),
+    initcolor='none'  # Remove the line marking the valinit position.
+    )
 
-    # Make a horizontal slider to control the frequency.
-    axfreq = fig.add_axes([0.25, 0.1, 0.65, 0.03])
-    freq_slider = Slider(
-        ax=axfreq,
-        label='Frequency [Hz]',
-        valmin=x[0],
-        valstep = x,
-        valmax=x[len(x) - 1],
-        valinit=x[0]
-        )
+    def update(val):
+        freq = sfreq.val
 
-    def update(frequency, data1, data2):
-        line1.set_ydata(getParams(frequency, data1, data2)[1])
-        line1.set_ydata(getParams(frequency, data1, data2)[2])
+        mu1, std1 = norm.fit(y1[freq])
+        mu2, std2 = norm.fit(y2[freq])
+        #xmin, xmax = plt.xlim()
+        xSpace = np.linspace(0, 100, 100)
+        l1.set_ydata(norm.pdf(xSpace, mu1, std1))
+        l2.set_ydata(norm.pdf(xSpace, mu2, std2))
         fig.canvas.draw_idle()
 
-    freq_slider.on_changed(update)
-
-    resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
-    button = Button(resetax, 'Reset', hovercolor='0.975')
-
-    def reset(event):
-        freq_slider.reset()
-    button.on_clicked(reset)
+    sfreq.on_changed(update)
+    
 
 
-
-    plt.title(chartTitle)
-    plt.xlabel(xTitle)
-
-
-    ax.legend(loc='upper right')
-
-
-def FullAnalysis(lowerRange=100, topRange=1000, steps=10, numSamples=5, server_UDP_name='localhost', server_TCP_name='localhost',server_port_TCP=12000, server_port_UDP=12000):
+def FullAnalysis(lowerRange=100, topRange=1000, steps=10, numSamples=15, server_UDP_name='localhost', server_TCP_name='localhost',server_port_TCP=12000, server_port_UDP=12000, write=1, file_Name="data.txt"):
     #this function plots a full suite of tests and graphs comparing UDP and TCP, as well as other things.
     #all data from the analysis is saved in a file
     full_data = {}
     #this dictionary stores information about the sample that is done
     full_data["Criteria"] = {"Lower Range": lowerRange, "Top Range": topRange, "Steps": steps, "numSamples": numSamples, "Connection Status (TCP)": ("local" if server_TCP_name=="localhost" else "online"), "Connection Status (UDP)": ("local" if server_UDP_name=="localhost" else "online")}
 
-    TCP_data = frequencySweepUDP("all", lowerRange, topRange, steps, numSamples, server_TCP_name, server_port_TCP, plot=0)
+    TCP_data = frequencySweepTCP("all", lowerRange, topRange, steps, numSamples, server_TCP_name, server_port_TCP, plot=0)
     UDP_data = frequencySweepUDP("all", lowerRange, topRange, steps, numSamples, server_UDP_name, server_port_UDP, plot=0)
 
     #processing main frequency responce data:
@@ -391,8 +379,6 @@ def FullAnalysis(lowerRange=100, topRange=1000, steps=10, numSamples=5, server_U
     #plot the normal distributions of time based on frequencies that can be changed by the user.
     UDPVals = {}
     TCPVals = {}
-    UDPtemp = []
-    TCPtemp = []
     frequency = []
     
     for key in UDP_data["Frequency Raw Data"].keys():
@@ -404,11 +390,19 @@ def FullAnalysis(lowerRange=100, topRange=1000, steps=10, numSamples=5, server_U
             TCPVals[TCP_data["Frequency Raw Data"][key]["frequency"]] = TCP_data["Frequency Raw Data"][key]["data"]["Round Trip Time"]
 
 
-
+    #print(frequency)
     normalSliders(frequency, UDPVals, TCPVals, "Normal Distributions of UDP and TCP Round Trip Time for a Given Frequency", "Responce Time", "UDP Round Trip Time", "TCP Round Trip Time")
     
-  
+    
 
+    #writing to file, not working atm
+    if (write):
+        thing = json.dumps({"UDP Data": UDP_data, "TCP Data": TCP_data})
+        f = open(file_Name, "w")
+        f.write(thing)
+        f.close()
+        
+    #plotNormal(UDPVals[frequency[1]])
     plt.show()
     
 
