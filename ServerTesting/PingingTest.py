@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import socket
 import statistics as stats
+from matplotlib.widgets import Slider, Button
+import json
 
 def processData(impulses):
     #plots all the impulses
@@ -75,7 +77,7 @@ def timeToDigit(timeStr):
 
     return minutes + seconds + microseconds
 
-def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='192.168.86.34', server_port=12000):
+def frequencySweepUDP(criteria="Round Trip Time", bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000, plot=1):
 
 
     #this function takes a parameter and sweeps accross a certain refresh rate
@@ -86,13 +88,34 @@ def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, serv
     frequencies = []
     means = []
     stds = []
+
+    dout = {}
+    datas = {}
+
     for i in range(steps):
         frequency = bottom + increment * i
         print(frequency)
         frequencies.append(frequency)
-        mu, std = norm.fit(processData(timeAnalysis(numSamples, (1/frequency), server_name, server_port))[criteria])
+        data = processData(timeAnalysisUDP(numSamples, (1/frequency), server_name, server_port))
+
+
+        datas[i] = {"frequency": frequency, "data": data}
+        
+        
+        if (criteria != "all"):
+            mu, std = norm.fit(data[criteria])
+        else:
+            mu, std = norm.fit(data["Round Trip Time"])
+
         means.append(mu)
         stds.append(std)
+
+    #this indicates you just want the data, and dont want it to plot it for you
+    dout["Frequency Raw Data"] = datas
+    dout["Frequency Responce"] = {"Frequency": frequencies, "means": means, "stds": stds}
+    if(criteria == "all" and plot == 0):
+        return dout
+
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
@@ -110,9 +133,11 @@ def frequencySweep(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, serv
     ax1.legend(loc='upper right')
    #ax2.legend(loc='upper right')
 
-    plt.show()
+    if (plot == 1):
+        plt.show()
+    return {"plt": plt, "data": data}
 
-def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000):
+def frequencySweepTCP(criteria="Round Trip Time", bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000, plot=1):
 
 
     #this function takes a parameter and sweeps accross a certain refresh rate
@@ -123,6 +148,8 @@ def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, s
     frequencies = []
     means = []
     stds = []
+    dout = {}
+    datas = {}
 
     
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -136,11 +163,24 @@ def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, s
         frequency = bottom + increment * i
         print(frequency)
         frequencies.append(frequency)
-        mu, std = norm.fit(processData(timeAnalysisTCP(numSamples, (1/frequency), server_name, server_port, client_socket))[criteria])
+        data = processData(timeAnalysisTCP(numSamples, (1/frequency), server_name, server_port, client_socket))
+
+        datas[i] = {"frequency": frequency, "data": data}
+        
+        if (criteria != "all"):
+            mu, std = norm.fit(data[criteria])
+        else:
+            mu, std = norm.fit(data["Round Trip Time"])
+
         means.append(mu)
         stds.append(std)
     
     client_socket.close()
+    #this indicates you just want the data, and dont want it to plot it for you
+    dout["Frequency Raw Data"] = datas 
+    dout["frequency Responce"] = {"Frequency": frequencies, "means": means, "stds": stds}
+    if(criteria == "all" and plot == 0):
+        return dout
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
@@ -156,10 +196,11 @@ def frequencySweepTCP(criteria, bottom=0.7, top=1000, steps=10, numSamples=80, s
 
 
     ax1.legend(loc='upper right')
-   #ax2.legend(loc='upper right')
-
-    plt.show()
-
+    #ax2.legend(loc='upper right')
+    if (plot == 1):
+        plt.show()
+    return {"plt": plt, "data": data}
+    
 def timeAnalysisUDP(loops, pause_time, server_name, server_port, complexity='0'):
 
     Pulses = {}
@@ -230,7 +271,140 @@ def timeAnalysisTCP(loops, pause_time, server_name, server_port, client_socket, 
     
     return Pulses
 
+def PlotData(x, y, chartTitle, xTitle, yTitle, colour='r'):
+    fig, ax = plt.subplots()
 
+    ax.plot(x, y)
+    ax.set(
+        xlabel = xTitle,
+        ylabel = yTitle,
+        color = colour,
+        title = chartTitle
+    )
+
+def graph2Sided(x, y1, y2, chartTitle, xTitle, y1Title, y2Title, y1colour='r', y2colour='b'):
+
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+
+    ax1.plot(x, y1, y1colour, label = y1Title)
+    ax2.plot(x, y2, y2colour, label = y2Title)
+
+    plt.title(chartTitle)
+    plt.xlabel(xTitle)
+    ax1.set_ylabel(y1Title, color=y1colour)
+    ax2.set_ylabel(y2Title, color=y2colour)
+
+
+    ax1.legend(loc='upper right')
+
+def graph2OnOne(x, y1, y2, chartTitle, xTitle, y1Title, y2Title, y1colour='r', y2colour='b'):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(x, y1, y1colour, label = y1Title)
+    ax.plot(x, y2, y2colour, label = y2Title)
+
+    plt.title(chartTitle)
+    plt.xlabel(xTitle)
+
+
+    ax.legend(loc='upper right')
+    
+def normalSliders(x, y1, y2, chartTitle, xTitle, y1Title, y2Title, y1colour='r', y2colour='b'):
+    #y1 and y2 need to be in the form {frequency: [samples]}, in order for the mean to be calculated
+    
+   
+    mu1, std1 = norm.fit(y1[x[0]])
+    mu2, std2 = norm.fit(y2[x[0]])
+    print(plt.xlim())
+    xSpace = np.linspace(0, 100, 100)
+    p = norm.pdf(xSpace, mu1, std1)
+    q = norm.pdf(xSpace, mu2, std2)
+
+    fig, ax = plt.subplots()
+    fig.subplots_adjust(bottom=0.25)
+    l1, = ax.plot(xSpace, p, lw=2)
+    l2, = ax.plot(xSpace, q, lw=2)
+
+    ax_freq = fig.add_axes([0.25, 0.1, 0.65, 0.03])
+
+    # define the values to use for snapping
+    allowed_amplitudes = x
+
+    sfreq = Slider(
+    ax_freq, "Frequency", x[0], x[len(x)-1],
+    valinit=x[1], valstep=(x[1]-x[0]),
+    initcolor='none'  # Remove the line marking the valinit position.
+    )
+
+    def update(val):
+        freq = sfreq.val
+
+        mu1, std1 = norm.fit(y1[freq])
+        mu2, std2 = norm.fit(y2[freq])
+        #xmin, xmax = plt.xlim()
+        xSpace = np.linspace(0, 100, 100)
+        l1.set_ydata(norm.pdf(xSpace, mu1, std1))
+        l2.set_ydata(norm.pdf(xSpace, mu2, std2))
+        fig.canvas.draw_idle()
+
+    sfreq.on_changed(update)
+    
+
+
+def FullAnalysis(lowerRange=100, topRange=1000, steps=10, numSamples=15, server_UDP_name='localhost', server_TCP_name='localhost',server_port_TCP=12000, server_port_UDP=12000, write=1, file_Name="data.txt"):
+    #this function plots a full suite of tests and graphs comparing UDP and TCP, as well as other things.
+    #all data from the analysis is saved in a file
+    full_data = {}
+    #this dictionary stores information about the sample that is done
+    full_data["Criteria"] = {"Lower Range": lowerRange, "Top Range": topRange, "Steps": steps, "numSamples": numSamples, "Connection Status (TCP)": ("local" if server_TCP_name=="localhost" else "online"), "Connection Status (UDP)": ("local" if server_UDP_name=="localhost" else "online")}
+
+    TCP_data = frequencySweepTCP("all", lowerRange, topRange, steps, numSamples, server_TCP_name, server_port_TCP, plot=0)
+    UDP_data = frequencySweepUDP("all", lowerRange, topRange, steps, numSamples, server_UDP_name, server_port_UDP, plot=0)
+
+    #processing main frequency responce data:
+
+
+    #plot the mean UDP return time with Standard Deviation:
+
+    graph2Sided(TCP_data["Frequency Responce"]["Frequency"], TCP_data["Frequency Responce"]["means"], TCP_data["Frequency Responce"]["stds"], "Round Trip Time of a TCP Connection", "Frequency", "Mean (ms)", "Standard Deviation (ms)")
+
+    #plot the mean TCP return time with Standard Deviation:
+    graph2Sided(UDP_data["Frequency Responce"]["Frequency"], UDP_data["Frequency Responce"]["means"], UDP_data["Frequency Responce"]["stds"], "Round Trip Time of a UDP Connection","Frequency", "Mean (ms)", "Standard Deviation (ms)")
+
+    #plot the TCP vs UDP responce time versus frequency:
+    graph2OnOne(TCP_data["Frequency Responce"]["Frequency"], UDP_data["Frequency Responce"]["means"], TCP_data["Frequency Responce"]["means"], "Round Trip time of a UDP and TCP Connection for Varying Frequencies", "Frequency", "UDP Mean (ms)", "TCP Mean (ms)")
+
+    #plot the normal distributions of time based on frequencies that can be changed by the user.
+    UDPVals = {}
+    TCPVals = {}
+    frequency = []
+    
+    for key in UDP_data["Frequency Raw Data"].keys():
+        frequency.append(UDP_data["Frequency Raw Data"][key]['frequency'])
+        for sample in UDP_data["Frequency Raw Data"][key]:
+            
+            #print(UDP_data["Frequency Raw Data"][key]["data"]["Round Trip Time"])
+            UDPVals[UDP_data["Frequency Raw Data"][key]["frequency"]] = UDP_data["Frequency Raw Data"][key]["data"]["Round Trip Time"]
+            TCPVals[TCP_data["Frequency Raw Data"][key]["frequency"]] = TCP_data["Frequency Raw Data"][key]["data"]["Round Trip Time"]
+
+
+    #print(frequency)
+    normalSliders(frequency, UDPVals, TCPVals, "Normal Distributions of UDP and TCP Round Trip Time for a Given Frequency", "Responce Time", "UDP Round Trip Time", "TCP Round Trip Time")
+    
+    
+
+    #writing to file, not working atm
+    if (write):
+        thing = json.dumps({"UDP Data": UDP_data, "TCP Data": TCP_data})
+        f = open(file_Name, "w")
+        f.write(thing)
+        f.close()
+        
+    #plotNormal(UDPVals[frequency[1]])
+    plt.show()
+    
 
 #data = processData(timeAnalysis(loops, pause_time, server_name, server_port))
 #print(data)
@@ -253,5 +427,8 @@ server_name = ''
 server_port = 12000
 
 #criteria, bottom=0.7, top=1000, steps=10, numSamples=80, server_name='localhost', server_port=12000
-frequencySweepTCP(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
+#frequencySweepTCP(toPlot, minFreq, highFreq, steps, samples, server_name, server_port)
+FullAnalysis()
 print("stopped")
+
+
