@@ -1,7 +1,7 @@
 # InformationProcessingProject 
 | Name      | Current progress |
 | ----------- | ----------- |
-| Yomna      |        |
+| Yomna      |    working on making game    |
 | Rory   |         |
 | Omar   |         |
 | Mubaraak   |         |
