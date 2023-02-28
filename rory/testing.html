@@ -1,0 +1,178 @@
+<!--this is the example script i was running to see how the js code worked 
+    it is kinda a mess but it does run (I think)-->
+
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      canvas {
+        background: #5ee;
+        display: block;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="480" height="320"></canvas>
+
+    <script>
+      // JavaScript code goes here
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+      let x = canvas.width / 2;
+      let y = canvas.height - 30;
+      let dx = 2;
+      let dy = -2;
+      const ballRadius = 10;
+      const paddleHeight = 10;
+      const paddleWidth = 75;
+      let paddleX = (canvas.width - paddleWidth) / 2;
+      let rightPressed = false;
+      let leftPressed = false;
+      const brickRowCount = 3;
+      const brickColumnCount = 5;
+      const brickWidth = 75;
+      const brickHeight = 20;
+      const brickPadding = 10;
+      const brickOffsetTop = 30;
+      const brickOffsetLeft = 30;
+      let shotAngle = 1;
+
+      function drawBall(){
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "Green";
+        ctx.fill();
+        ctx.closePath();
+        ctx.closePath();
+      }
+      function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+      }
+      
+      function drawTank(tank){                                //this could also work as a method of the tank class
+
+        /*ctx.beginPath();
+        //draw body
+        ctx.arc(x, y, 20 , 0, Math.PI * 2);      //tank object contains position info
+        ctx.fillStyle = "Blue";                        //tank object contains colour
+        ctx.fill();
+        ctx.beginPath();
+        //draw barrel
+        ctx.arc(x, y, 25, 0, ((shotAngle * 0.01) % (Math.PI * 2))); //tank object contains shotAngle, which specifies direction of barrel/shooting
+        ctx.lineWidth = 5;
+        ctx.lineTo(x, y)                                        //draw line from end of barrel to centre of tank
+        ctx.fillStyle = "Green";                                          //shotAngle should be controlled by tilting the nios2
+        ctx.stroke();
+        ctx.closePath();
+        ctx.closePath();*/
+        ctx.beginPath();
+    //draw treads
+      var theta = Math.atan2(dy, dx); // range (-PI, PI]              //tank object contains postion change info
+      theta = (Math.PI * 0.5) + theta; // range [0, 2PI)
+      ctx.fillStyle = "Black";
+      ctx.translate(x, y);
+      ctx.rotate(theta);
+      ctx.fillRect(-25, -15, 50, 30);
+      ctx.rotate(-theta);
+      ctx.translate(-x, -y);
+    ctx.closePath();
+
+    ctx.beginPath();
+    //draw body
+      ctx.arc(x, y, 20 , 0, Math.PI * 2);      //tank object contains position info (tank.x and tank.y mark centre of tank circle)
+      ctx.fillStyle = "Red";                        //tank object contains colour
+      ctx.fill();
+    ctx.closePath();
+
+    ctx.beginPath();
+    //draw barrel
+      //ctx.arc(x, y, 25, 0, ((shotAngle * 0.05) % (Math.PI * 2))); //tank object contains shotAngle, which specifies direction of barrel/shooting
+      ctx.translate(x, y);
+      ctx.rotate(shotAngle * 0.05);
+      ctx.fillStyle = "Green"; 
+      ctx.fillRect(-2, -2, 4, 35);
+      //ctx.rotate(-);
+      //ctx.translate(-x, -y);                                        //draw line from end of barrel to centre of tank
+                                                        //shotAngle should be controlled by tilting the nios2
+      ctx.rotate(-shotAngle * 0.05);
+      ctx.translate(-x, -y);
+      ctx.closePath();
+      }
+
+      function draw() {
+      // drawing code
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawTank();
+      //drawPaddle();
+      x += dx;
+      y += dy;
+      if (x + dx > canvas.width - ballRadius|| x + dx < ballRadius) {
+        dx = -dx;
+      }
+      if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
+        dy = -dy;
+      }
+      /*else if (y + dy > canvas.height - ballRadius) {
+        alert("GAME OVER");
+        document.location.reload();
+        clearInterval(interval); // Needed for Chrome to end game
+      }*/
+      /*else if (y + dy > canvas.height - ballRadius) {
+        if (x > paddleX && x < paddleX + paddleWidth) {
+          dy = -dy;
+        } else {
+          alert("GAME OVER");
+          document.location.reload();
+          clearInterval(interval);
+        }
+      }*/
+
+      /*if (rightPressed) {
+        paddleX = Math.min(paddleX + 7, canvas.width - paddleWidth);
+      } else if (leftPressed) {
+        paddleX = Math.max(paddleX - 7, 0);
+      }*/
+      if (rightPressed) {
+        shotAngle += 5;
+      } else if (leftPressed) {
+        shotAngle -= 5;
+      }
+      }
+      document.addEventListener("keydown", keyDownHandler, false);
+      document.addEventListener("keyup", keyUpHandler, false);
+      function keyDownHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+          rightPressed = true;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+          leftPressed = true;
+        }
+      }
+
+      function keyUpHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+          rightPressed = false;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+          leftPressed = false;
+        }
+      }
+      const interval = setInterval(draw, 30);
+    </script>
+  </body>
+</html>
