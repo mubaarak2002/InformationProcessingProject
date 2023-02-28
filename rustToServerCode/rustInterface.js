@@ -6,9 +6,11 @@ const server = net.createServer((socket) => {
     console.log("Rust Client is now Connected and listening on Localhost")
 
     socket.on("data", (data) => {
+        //these two lines are only for debugging, remove if not
+        //needed (or comment out)
         const message = data.toString.trim();
         console.log("Recieved: " + message);
-        
+
         data = JSON.parse(message)
         socket.emit("rust-message", { data });
 
