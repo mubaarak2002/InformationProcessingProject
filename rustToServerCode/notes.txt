@@ -1,0 +1,9 @@
+Format for how data is recieved:
+
+data =  ({
+         "Player": "ID",
+         "x": x,
+         "y": y,
+         "Fire":f
+        });
+
