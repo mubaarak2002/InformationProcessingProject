@@ -1,0 +1,1 @@
+C:\Users\ben\Desktop\UARTControl\InformationProcessingProject\NIOS2Manager\target\release\NIOS2Manager.exe: C:\Users\ben\Desktop\UARTControl\InformationProcessingProject\NIOS2Manager\src\main.rs C:\Users\ben\Desktop\UARTControl\InformationProcessingProject\NIOS2Manager\src\nios2.rs
