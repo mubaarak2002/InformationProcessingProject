@@ -27,7 +27,7 @@ io.sockets.on('connection', function (socket) {// WebSocket Connection
     console.log(paramNum); // 5 for python, 14 for website for some reason
     
     let client = 0;
-    if (paramNum == 2) { //python client
+    if (paramNum == 5 || paramNum == 2) { //python/rust client
         client = 0;
         pythonIDs.push(socket.id); //TODO: remove this from array afterwards
     } else { //web client
@@ -35,11 +35,10 @@ io.sockets.on('connection', function (socket) {// WebSocket Connection
         webIDs.push(socket.id);
     }
     
-	socket.on("data", function (arg) {
+	socket.on("data", function (data) {
 		if (client == 0) {
-            for (var id of webIDs) {
-                //socket.to(id).emit("data", arg); //socket.emit to this socket. io.emit to all sockets.
-                console.log("got: ", arg.x);
+            for (var id of webIDs) {//send data to web socket
+                socket.to(id).emit("data", data);
             }
         }
 	});

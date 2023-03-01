@@ -25,7 +25,7 @@ const socket = io(); //load socket.io-client and connect to the host that server
 
 socket.on("data", (data) => {
     console.log(data);
-    move(data);
+    // move(data);
 });
 
 const timer = setTimeout(draw, 1);
