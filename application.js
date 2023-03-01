@@ -27,7 +27,7 @@ io.sockets.on('connection', function (socket) {// WebSocket Connection
     console.log(paramNum); // 5 for python, 14 for website for some reason
     
     let client = 0;
-    if (paramNum == 5) { //python client
+    if (paramNum == 2) { //python client
         client = 0;
         pythonIDs.push(socket.id); //TODO: remove this from array afterwards
     } else { //web client
@@ -38,7 +38,8 @@ io.sockets.on('connection', function (socket) {// WebSocket Connection
 	socket.on("data", function (arg) {
 		if (client == 0) {
             for (var id of webIDs) {
-                socket.to(id).emit("data", arg); //socket.emit to this socket. io.emit to all sockets.
+                //socket.to(id).emit("data", arg); //socket.emit to this socket. io.emit to all sockets.
+                console.log("got: ", arg.x);
             }
         }
 	});
