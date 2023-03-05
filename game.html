@@ -182,13 +182,12 @@ function gameLoop(timestamp) {
   // listen for player data
   socket.on("data", (data) => { // event name 
     // update the players' tanks
-    var decodedData = JSON.parse(data);
 
-    console.log(`Player ${decodedData.Player} data: ${decodedData.x}, ${decodedData.y}, ${decodedData.Fire}`);
+    console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire}`);
 
-    tanks[parseInt(decodedData.Player)-1].accX = decodedData.x;
-    tanks[parseInt(decodedData.Player)-1].accY = decodedData.y;
-    tanks[parseInt(decodedData.Player)-1].fire = decodedData.Fire;
+    tanks[parseInt(data.Player)-1].accX = data.x;
+    tanks[parseInt(data.Player)-1].accY = data.y;
+    tanks[parseInt(data.Player)-1].fire = data.Fire;
   });
 
   // update tanks
