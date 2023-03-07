@@ -9,8 +9,9 @@ io.on('connection', (socket) => {
   socket.on('user input', (data) => {
     console.log('received input from user:', data);
     
+    
     // forward input to "player" client
-    socket.broadcast.emit('player input', data);
+    io.sockets.emit('reply', {message: "wagwan"});
   });
   
   socket.on('disconnect', () => {
