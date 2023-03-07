@@ -14,34 +14,45 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/game.html");
 });
 
-let pythonIDs = [];
-let webIDs = [];
+let clientIDs = [];
+let webId;
 
-io.sockets.on('connection', function (socket) {// WebSocket Connection
-	console.log("Connection from " + socket.handshake.headers); //reveals client ip
-    
-    let paramNum = 0;
-    for(var key in socket.handshake.headers){
-        paramNum++;
-    }
-    console.log(paramNum); // 5 for python, 14 for website for some reason
-    
-    let client = 0;
-    if (paramNum == 5 || paramNum == 2) { //python/rust client
-        client = 0;
-        pythonIDs.push(socket.id); //TODO: remove this from array afterwards
-    } else { //web client
-        client = 1;
-        webIDs.push(socket.id);
-    }
-    
+io.of("/client").on('connection', function (socket) {
+	console.log("Connection from client:" + socket.handshake.headers); //reveals client ip
+    // console.log(socket.id);
+    // console.log("web: ", webId);
+
 	socket.on("data", function (data) {
-		if (client == 0) {
-            for (var id of webIDs) {//send data to web socket
-                socket.to(id).emit("data", data);
-            }
-        }
+        // console.log(webId);
+        io.of("/webpage").to(webId).emit("data", data);
 	});
+
+	socket.on("disconnect", function () {
+		console.log(socket.request.connection.remoteAddress + " has disconnected");
+	});
+});
+
+
+io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
+	console.log("Connection from webpage" + socket.handshake.headers); //reveals client ip
+    
+    webId = socket.id;
+    console.log(webId);
+
+    // let paramNum = 0;
+    // for(var key in socket.handshake.headers){
+    //     paramNum++;
+    // }
+    // console.log(paramNum); // 5 for python, 14 for website for some reason
+    
+    // let client = 0;
+    // if (paramNum == 5 || paramNum == 2) { //python/rust client
+    //     client = 0;
+    //     pythonIDs.push(socket.id); //TODO: remove this from array afterwards
+    // } else { //web client
+    //     client = 1;
+    //     webIDs.push(socket.id);
+    // }
 
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
