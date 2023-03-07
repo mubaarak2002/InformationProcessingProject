@@ -185,6 +185,8 @@ function gameLoop(timestamp) {
   socket.on("data", (data) => { // event name 
     // update the players' tanks
 
+    console.log("test");
+
     console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire}`);
 
     tanks[parseInt(data.Player)-1].accX = data.x;
@@ -221,7 +223,7 @@ function init() {
   tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "2", "f"));
 
   // open socket for players
-  socket= io(); 
+  socket = io("/webpage");
 
   // start the game loop
   gameLoop();
