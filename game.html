@@ -48,6 +48,7 @@ class Tank {
     this.health = 100;
     this.player = player;
     this.fire = fire;
+    this.lives = 3;
   }
 
   draw() {
@@ -197,6 +198,7 @@ function gameLoop(timestamp) {
     tank.move();
     // tank.checkHealth();
     tank.fireBullets();
+    socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
   });
 
   // update bullets
