@@ -1,7 +1,7 @@
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
-    host: "database-1.czawgzjnocpk.us-east-1.rds.amazonaws.com",
+    host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
     port: "3306",
     user: "admin",
     password: "password",
@@ -15,6 +15,7 @@ const db = mysql.createConnection({
 //Table "players" structure:
 //|playerID | wins | losses |
 
+//TODO:
 //Table "rivalries" structure:
 //|player1ID | player2ID | player1wins | player2 wins |
 
@@ -35,24 +36,18 @@ db.query(sql, (err, result) => {
     console.log(result);
 });
 
-//checks if player is already in the database, if no adds a row, if yes does nothing
-var newplayer = "test3";
-var set = "SET @playerID = '" + newplayer + "', @wins = '0', @losses = '0';";
-var sql = "INSERT INTO players VALUES ('" + newplayer + "', '0', '0') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
-db.query(sql, (err, result) => {
-    if(err) throw err;
-});
-
-//updates the wins column of the winner
+//query for the winner, creates a new row if player has no record, adds 1 to wins
 var winner = "test1";
-var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner +"';";
+var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
+var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
 
-//updates the lossses column of the loser
+//query for the loser, creates a new row if player has no record, adds 1 to losses
 var loser = "test2";
-var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser +"';";
+var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
+var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
