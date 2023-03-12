@@ -1,14 +1,26 @@
 <html>
-<head>
-  <style>
-    #canvas {
-        position: fixed;
-        left: 0;
-        top: 0;
-        border: 2px solid black;
-    }
-  </style>
-</head>
+<!-- <head>
+  <title>Brick Breaker</title>
+	<meta charset="UTF-8" />
+	<style>
+		#gameScreen {
+			border: 6px solid black;
+		}
+	</style>
+</head> -->
+<style>
+  * {
+    padding: 0;
+    margin: 0;
+  }
+  canvas {
+    background: rgb(181, 160, 56);
+    display: block;
+    margin: 0 auto;
+  }
+
+</style>
+<div id="container"></div>
 <body>
   <!-- <img id="tankImg" src="assets/tank.png"> -->
 
@@ -22,28 +34,174 @@
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
+//key controls
+let rightPressed = false; //movement
+let leftPressed = false;
+let upPressed = false;
+let downPressed = false;
+let commaPressed = false;
+let periodPressed = false;
+let spacePressed = false;
+
+function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  
+  ctx.fillStyle = "black";
+  ctx.fillRect(topLeft[0], topLeft[1], -(topLeft[0] - topRight[0]), -(topLeft[1] - bottomLeft[1]));
+
+}
+
+
+
+
+function allowableMove(forbiddenSpaces, currentx, currenty, dx, dy) {
+  let legalXMove = true;
+  let legalYMove = true;
+  forbiddenSpaces.forEach(function check(space, index){
+      //given the lines are straight lines, a vertex will always define the maximum and minimum
+      //x and y values. This means that we can establish that the new y value cannot be inside
+      //the min/max y verticies if the new x value is also inside the min/max x verticies
+      
+
+
+
+      let nx = currentx + dx
+      let ny = currenty + dy;
+      let minx = space[0][0];
+      let miny = space[0][1];
+      let maxx = space[1][0];
+      let maxy = space[1][1];
+
+      space.forEach(function thing(vertex, index) {
+ 
+        if (vertex[0] < minx) {
+          minx = vertex[0];
+        }
+        if (vertex[0] > maxx) {
+          maxx = vertex[0];
+        }
+        if (vertex[1] < miny) {
+          miny = vertex[1];
+        }
+        if (vertex[1] > maxy) {
+          maxy = vertex[1];
+        }
+      });
+      
+      if (ny < maxy && ny > miny && nx < maxx && nx > minx) {
+        legalYMove = false;
+      }
+      if (nx < maxx && nx > minx && ny < maxy && ny > miny) {
+        legalXMove = false;
+      }
+      
+
+
+  });
+  return[legalXMove, legalYMove];
+}
+            
+
 // height of window for reference 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.height = window.innerHeight; //lock to 4:3 aspect ratio
+canvas.width = canvas.height * 1.33;
+
+
+//inside this should be rectangles with 4 points inside it to define a rectangle where you cannot
+//enter, thus you can make them as big or as little as you want. but if you make them too small,
+//and dx/dy is bigger than the width, you could jump through a square
+//eg: const forbiddenSpaces = [ [[1,1], [2,2], [3,3], [4,4]] ] 
+//change this to "const", not "let"
+let forbiddenSpaces = [];
+//this is adding the wall boundaries to it:
+//"+/- 2" is just to give the wall some non-zero thickness
+
+//this is a square in the middle of edge length 50
+//MUST BE OF THE FORMAT [ [top left], [top right], [bottom left], [bottom right] ]
+forbiddenSpaces = [ 
+                    [
+                       [canvas.width/2 - 50, canvas.height/2 - 50],
+                       [canvas.width/2 + 50, canvas.height/2 - 50],
+                       [canvas.width/2 - 50, canvas.height/2 + 50],
+                       [canvas.width/2 + 50, canvas.height/2 + 50]
+                    ]
+
+                  ];
+
+
 
 
 // define arrays for tanks and bullets
 let tanks = [];
 let bullets = [];
+let walls = [];
 
+//stuff for key controls. Comment out if not using
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = true;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = true;
+    }
+    if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = true;
+    }
+    else if(e.key == "down" || e.key == "ArrowDown") {
+        downPressed = true;
+    }
+    if(e.keyCode == 188) {
+        commaPressed = true;
+    }
+    else if(e.keyCode == 190) {
+        periodPressed = true;
+    }
+    if(e.keyCode == 32) {
+        spacePressed = true;
+    }
+}
+
+function keyUpHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = false;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = false;
+    }
+    if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = false;
+    }
+    else if(e.key == "down" || e.key == "ArrowDown") {
+        downPressed = false;
+    }
+    if(e.keyCode == 188) {
+        commaPressed = false;
+    }
+    else if(e.keyCode == 190) {
+        periodPressed = false;
+    }
+    if(e.keyCode == 32) {
+        spacePressed = false;
+    }
+}
 // TODO: draw arena borders
 
 // define the Tank class
 class Tank {
-  constructor(x, y, accX, accY, player, fire) {
+  constructor(x, y, accX, accY, colour, player, fire) {
     this.x = x;
     this.y = y;
     this.accX = accX;
     this.accY = accY;
-    this.color = "red";
-    this.width = 50*0.0035*canvas.height;
-    this.height = 35*0.0035*canvas.height;
-    this.angle = 0;
+    this.colour = colour;
+    this.width = 40;
+    this.height = this.width;
+    this.angle = 0;     //angle of movement
+    this.shotAngle = 0; //angle of shooting
     this.magnitude = 0;
     this.speed = 5;
     this.health = 100;
@@ -53,12 +211,39 @@ class Tank {
   }
 
   draw() {
+    ctx.save();  
+    ctx.beginPath();
+    this.angle = Math.atan2(this.accY, this.accX) + (Math.PI * 0.5);                     //tank object contains postion change info (here used to calculate direction of travel)
     ctx.save();
+    //draw treads
+    ctx.fillStyle = "Black";
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    ctx.fillStyle = this.color;
-    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.fillRect(-25, -15, 50, 30);
+    ctx.rotate(-this.angle);
+    ctx.translate(-this.x, -this.y);
+    ctx.closePath();
+
+    ctx.beginPath();
+    //draw body
+    ctx.arc(this.x, this.y, 0.5 * this.width , 0, Math.PI * 2);      //tank object contains position info (tank.x and tank.y mark centre of tank circle)
+    ctx.fillStyle = this.colour;                        //tank object contains colour
+    ctx.fill();
+    ctx.closePath();
+
+    ctx.beginPath();
+
+    this.shotAngle = this.angle + Math.PI; //comment out if you want turret rotating independently
+    //draw barrel
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.shotAngle);           
+    ctx.fillStyle = "Green"; 
+    ctx.fillRect(-2, -2, 4, 35);
+    ctx.rotate(-this.shotAngle);          
+    ctx.translate(-this.x, -this.y);
+    ctx.closePath();
     ctx.restore();
+                        
   }
 
 
@@ -68,8 +253,20 @@ class Tank {
     this.angle = Math.atan2(this.accY, this.accX);
 
     // Update coordinates
-    this.x += Math.cos(this.angle) * this.magnitude * this.speed;
-    this.y += Math.sin(this.angle) * this.magnitude * this.speed;
+    let nx = Math.cos(this.angle) * this.magnitude * this.speed;
+    let ny = Math.sin(this.angle) * this.magnitude * this.speed;
+    
+
+    if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[0]) {
+
+      this.x += nx;
+    }
+    if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[1]) {
+
+      this.y += ny;
+    }
+
+
 
     this.detectCollision();
   }
@@ -77,13 +274,15 @@ class Tank {
   fireBullets() {
     if (this.fire == "t") {
       // check of the tank is allowed to shoot
-      const bullet = new Bullet(this.x, this.y, this.angle, 10, 5, "black", this);
+      const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 5, "black", this);
       bullets.push(bullet); // add the bullet to the bullets array
     }
   }
 
   detectCollision() {
     // detect collision with other tanks
+
+    
     tanks.forEach((tank) => {
       if (tank !== this) {
         let dx = tank.x - this.x;
@@ -115,11 +314,14 @@ class Tank {
     } else if (this.y + this.height / 2 > canvas.height) {
       this.y = canvas.height - this.height / 2;
     }
+
+
   }
 
   checkHealth() {
     if(this.health <= 0){
-      tanks.splice(i, 1);
+      tanks.splice(tanks.indexOf(this), 1);
+      delete this;
     }
   }
 }
@@ -129,34 +331,57 @@ class Bullet {
   constructor(x, y, angle, speed, damage, color, tank) {
     this.x = x;
     this.y = y;
-    this.angle = angle;
+    this.angle = angle + Math.PI * 0.5;
     this.speed = speed;
     this.damage = damage;
     this.color = color;
     this.tank = tank;
     this.radius = 5;
+    this.dirChange = 0;
+    this.dx = Math.cos(this.angle) * this.speed;
+    this.dy = Math.sin(this.angle) * this.speed;
   }
 
   draw() {
     ctx.fillStyle = this.color;
     ctx.beginPath();
+    // ctx.rotate(this.angle);
     ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fill();
+    // ctx.rotate(-this.angle);
+    ctx.closePath();
   }
 
   move() {
-    let dx = Math.cos(this.angle) * this.speed;
-    let dy = Math.sin(this.angle) * this.speed;
-    this.x += dx;
-    this.y += dy;
+    if (allowableMove(forbiddenSpaces, this.x, this.y, this.dx, this.dy)[0] && allowableMove(forbiddenSpaces, this.x, this.y, this.dx, this.dy)[1]) {
+      this.x += this.dx;
+      this.y += this.dy;
+    } else {
+      bullets.splice(bullets.indexOf(this), 1); 
+      delete this;
+    }
+
     // detect collision with arena borders
-    if (
-      this.x - this.radius < 0 ||
-      this.x + this.radius > canvas.width ||
-      this.y - this.radius < 0 ||
-      this.y + this.radius > canvas.height
-    ) {
-      bullets.splice(bullets.indexOf(this), 1);
+    if (this.x + this.dx > canvas.width - this.radius|| this.x + this.dx < this.radius) {           //if colliding with edge of canvas, reflect
+      if(this.angle === 2*Math.PI || this.angle === 3*Math.PI) {
+
+      } else {
+        this.dx = -this.dx;
+        this.dirChange ++;
+      }
+    }
+    if (this.y + this.dy < this.radius || this.y + this.dy > canvas.height - this.radius) {
+      if(this.angle === 3*Math.PI/2 || this.angle === 5/2*Math.PI) {
+        bullets.splice(bullets.indexOf(this), 1); 
+        delete this;
+      } else {
+        this.dy = -this.dy;
+        this.dirChange ++;
+      }
+    }
+    if(this.dirChange > 1){
+      bullets.splice(bullets.indexOf(this), 1);          
+      delete this;                   //if 2nd bounce off wall, delete;
     }
 
     // detect collision with tanks
@@ -167,6 +392,7 @@ class Bullet {
         let distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < tank.width / 2 + this.radius) {
           bullets.splice(bullets.indexOf(this), 1);
+          delete this;
           tank.health -= this.damage;
         }
       }
@@ -181,6 +407,10 @@ function gameLoop(timestamp) {
   lastTime = timestamp;
   // clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  forbiddenSpaces.forEach((space) => {
+    drawPoints(space[0], space[1], space[2], space[3]);
+  });
 
   // listen for player data
   socket.on("data", (data) => { // event name 
@@ -197,16 +427,50 @@ function gameLoop(timestamp) {
   tanks.forEach((tank) => {
     tank.draw();
     tank.move();
-    // tank.checkHealth();
+    tank.checkHealth();
     tank.fireBullets();
     socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
   });
+
+  // walls.forEach((wall) => {
+  //   wall.draw();
+  // });
+  // console.log("Drew a wall")
 
   // update bullets
   bullets.forEach((bullet) => {
     bullet.draw();
     bullet.move();
   });
+
+
+  //more keys control stuff
+  if(spacePressed){
+    tanks[0].fire = 't';
+    spacePressed = false;
+  }
+  else{
+    tanks[0].fire = 'f';
+  }
+  if(rightPressed) {
+    tanks[0].accX = 1;
+  }
+  else if(leftPressed) {
+    tanks[0].accX = -1;
+  }
+  else{
+    tanks[0].accX = 0;
+  }
+
+  if(upPressed) {
+    tanks[0].accY = -1;
+  }
+  else if(downPressed) {
+    tanks[0].accY = 1;
+  }
+  else{
+    tanks[0].accY = 0;
+  }
 
   // request the next frame
   requestAnimationFrame(gameLoop);
@@ -218,8 +482,12 @@ function init() {
 
   // create tanks
   // initialise tank positions to center and facing each other
-  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "1", "f"));
-  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "2", "f"));
+  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "f"));
+  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "f"));
+
+  forbiddenSpaces.forEach((space) => {
+    drawPoints(space[0], space[1], space[2], space[3]);
+  });
 
   // open socket for players
   socket = io("/webpage");
@@ -229,7 +497,9 @@ function init() {
 }
 
 // run the game
+
 init();
+
   </script>
 </body>
 
