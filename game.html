@@ -219,7 +219,7 @@ class Tank {
 
   checkHealth() {
     if(this.health <= 0){
-      tanks.splice(i, 1);
+      tanks.splice(tanks.indexOf(this), 1);
     }
   }
 }
@@ -229,34 +229,41 @@ class Bullet {
   constructor(x, y, angle, speed, damage, color, tank) {
     this.x = x;
     this.y = y;
-    this.angle = angle;
+    this.angle = angle + Math.PI * 0.5;
     this.speed = speed;
     this.damage = damage;
     this.color = color;
     this.tank = tank;
     this.radius = 5;
+    this.dirChange = 0;
+    this.dx = Math.cos(this.angle) * this.speed;
+    this.dy = Math.sin(this.angle) * this.speed;
   }
 
   draw() {
     ctx.fillStyle = this.color;
     ctx.beginPath();
+    // ctx.rotate(this.angle);
     ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fill();
+    // ctx.rotate(-this.angle);
+    ctx.closePath();
   }
 
   move() {
-    let dx = Math.cos(this.angle) * this.speed;
-    let dy = Math.sin(this.angle) * this.speed;
-    this.x += dx;
-    this.y += dy;
+    this.x += this.dx;
+    this.y += this.dy;
     // detect collision with arena borders
-    if (
-      this.x - this.radius < 0 ||
-      this.x + this.radius > canvas.width ||
-      this.y - this.radius < 0 ||
-      this.y + this.radius > canvas.height
-    ) {
-      bullets.splice(bullets.indexOf(this), 1);
+    if (this.x + this.dx > canvas.width - this.radius|| this.x + this.dx < this.radius) {           //if colliding with edge of canvas, reflect
+      this.dx = -this.dx;
+      this.dirChange ++;
+    }
+    if (this.y + this.dy < this.radius || this.y + this.dy > canvas.height - this.radius) {
+      this.dy = -this.dy;
+      this.dirChange ++;
+    }
+    if(this.dirChange > 1){
+      bullets.splice(bullets.indexOf(this), 1);                             //if 2nd bounce off wall, delete;
     }
 
     // detect collision with tanks
@@ -299,7 +306,7 @@ function gameLoop(timestamp) {
   tanks.forEach((tank) => {
     tank.draw();
     tank.move();
-    // tank.checkHealth();
+    tank.checkHealth();
     tank.fireBullets();
     socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
   });
@@ -311,6 +318,12 @@ function gameLoop(timestamp) {
   });
 
   //more keys control stuff
+  if(spacePressed){
+    tanks[0].fire = 't';
+  }
+  else{
+    tanks[0].fire = 'f';
+  }
   if(rightPressed) {
     tanks[0].accX = 1;
   }
