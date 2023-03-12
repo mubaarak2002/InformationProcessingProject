@@ -15,6 +15,7 @@ app.get("/", (req, res) => {
 });
 
 let clientIDs = [];
+let playerNames = [];
 let webId = null;
 
 io.of("/client").on('connection', function (socket) {
@@ -32,10 +33,20 @@ io.of("/client").on('connection', function (socket) {
         socket.disconnect();
     }
 
+    
+    socket.on("init", function (data) {
+        // console.log("init ", data);
+        
+        if (!playerNames.includes(data.Username)) {
+            playerNames[playerId-1] = data.Username;
+        }
+    });
+
 
     socket.on("data", function (data) {
-        // console.log(data.username);
-        data["Player"] = playerId;
+        console.log("data ", data);
+        data["Player"] = playerNames[playerId-1];
+        data["Username"] = playerUsername;
         io.of("/webpage").to(webId).emit("data", data);
     });
 
