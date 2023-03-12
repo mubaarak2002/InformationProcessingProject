@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 
+//connection requirements
 const db = mysql.createConnection({
     host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
     port: "3306",
@@ -58,6 +59,11 @@ db.query(sql, (err, result) => {
     if(err) throw err;
     console.log(result);
 });
+
+//closes connection to the database
+db.end((err) => {
+    console.log("connection ended");
+  });
 
 //closes connection to the database
 db.end((err) => {
