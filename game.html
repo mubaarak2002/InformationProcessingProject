@@ -269,6 +269,7 @@ class Tank {
 
 
     this.detectCollision();
+    this.draw();
   }
 
   fireBullets() {
@@ -294,6 +295,7 @@ class Tank {
           let angle = Math.atan2(dy, dx);
           let moveX = overlap * Math.cos(angle);
           let moveY = overlap * Math.sin(angle);
+
           this.x -= moveX / 2;
           this.y -= moveY / 2;
           tank.x += moveX / 2;
@@ -425,17 +427,14 @@ function gameLoop(timestamp) {
 
   // update tanks
   tanks.forEach((tank) => {
-    tank.draw();
+    //tank.draw(); //moved the draw function into the move function
     tank.move();
     tank.checkHealth();
     tank.fireBullets();
     socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
   });
 
-  // walls.forEach((wall) => {
-  //   wall.draw();
-  // });
-  // console.log("Drew a wall")
+
 
   // update bullets
   bullets.forEach((bullet) => {
