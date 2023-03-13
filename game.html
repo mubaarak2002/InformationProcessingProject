@@ -25,7 +25,7 @@
   <!-- <img id="tankImg" src="assets/tank.png"> -->
 
   <canvas id="canvas"></canvas>
-  <script src="socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     
     // define global variables
@@ -418,9 +418,7 @@ function gameLoop(timestamp) {
   socket.on("data", (data) => { // event name 
     // update the players' tanks
 
-    console.log("test");
-
-    console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire}`);
+    console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
 
     tanks[parseInt(data.Player)-1].accX = (data.x - 50)*2;
     tanks[parseInt(data.Player)-1].accY = (data.y - 50)*2;

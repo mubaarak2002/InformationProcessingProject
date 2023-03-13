@@ -15,17 +15,40 @@ app.get("/", (req, res) => {
 });
 
 let clientIDs = [];
-let webId;
+let playerNames = [];
+let webId = null;
 
 io.of("/client").on('connection', function (socket) {
-	console.log("Connection from client:" + socket.handshake.headers); //reveals client ip
-    // console.log(socket.id);
-    // console.log("web: ", webId);
+    let playerId;
+    if (clientIDs[0] == null){
+        clientIDs[0] = socket.id;
+        playerId = 1;
+        console.log("Connection from player 1: " + socket.handshake.headers); //reveals client ip
+    } else if (clientIDs[1] == null) {
+        clientIDs[1] = socket.id;
+        playerId = 2;
+        console.log("Connection from player 2: " + socket.handshake.headers); //reveals client ip
+    } else {
+        console.log("Maximum players already reached");
+        socket.disconnect();
+    }
 
-	socket.on("data", function (data) {
-        // console.log(webId);
+    
+    socket.on("init", function (data) {
+        // console.log("init ", data);
+        
+        if (!playerNames.includes(data.Username)) {
+            playerNames[playerId-1] = data.Username;
+        }
+    });
+
+
+    socket.on("data", function (data) {
+        console.log("data ", data);
+        data["Player"] = playerNames[playerId-1];
+        data["Username"] = playerUsername;
         io.of("/webpage").to(webId).emit("data", data);
-	});
+    });
 
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
@@ -34,27 +57,16 @@ io.of("/client").on('connection', function (socket) {
 
 
 io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
-	console.log("Connection from webpage" + socket.handshake.headers); //reveals client ip
-    
-    webId = socket.id;
-    console.log(webId);
-
-    // let paramNum = 0;
-    // for(var key in socket.handshake.headers){
-    //     paramNum++;
-    // }
-    // console.log(paramNum); // 5 for python, 14 for website for some reason
-    
-    // let client = 0;
-    // if (paramNum == 5 || paramNum == 2) { //python/rust client
-    //     client = 0;
-    //     pythonIDs.push(socket.id); //TODO: remove this from array afterwards
-    // } else { //web client
-    //     client = 1;
-    //     webIDs.push(socket.id);
-    // }
+    if (webId == null) {
+        webId = socket.id;
+        console.log("Connection from webpage" + socket.handshake.headers); //reveals client ip
+    } else {
+        console.log("Go away");
+        socket.disconnect();
+    }
 
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
+        webId = null;
 	});
 });
