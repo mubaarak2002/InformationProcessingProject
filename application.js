@@ -65,6 +65,18 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
+    socket.on("lives", function (data) {
+        
+    });
+
+    socket.on("game over", function (data) {
+        // add to database the winner and loser data
+        // data.player1 | data.player2 | boolean (p1 wins = 1, p2 wins = 0)
+
+        let json = {"history": player1wins + " - " + player2wins};
+        socket.emit("history", json);
+    });
+
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
         webId = null;
