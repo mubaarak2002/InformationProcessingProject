@@ -71,8 +71,41 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
 
     socket.on("game over", function (data) {
         // add to database the winner and loser data
-        // data.player1 | data.player2 | boolean (p1 wins = 1, p2 wins = 0)
+        // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
         
+        if (data.winner){
+            var winner = data.player1;
+            var loser = data.player2;
+        }
+        else if (data.winner == 0){
+            var winner = data.player2;
+            var loser = data.player1;
+        }
+        var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
+        var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
+
+        var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
+        var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
+
+        if (data.winner){
+            var sql = "INSERT INTO rivalries VALUES ('" + data.player1 + "', '" + data.player2 + "', '1', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;
+            db.query(sql, (err, result) => {
+                if(err) throw err;
+            });
+        }
+        else{
+            var sql = "INSERT INTO rivalries VALUES ('" + player1ID + "', '" + player2ID + "', '0', '1') ON DUPLICATE KEY UPDATE player2wins = player2wins + 1;" ;
+            db.query(sql, (err, result) => {
+                if(err) throw err;
+            });
+        }
+
         let json = {"history": player1wins + " - " + player2wins};
         socket.emit("history", json);
     });
