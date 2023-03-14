@@ -55,14 +55,40 @@ else{
 }
 
 //displays select player1wins and player2wins
-var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
-db.query(sql, (err, result) => {
-    if(err) throw err;
-    console.log(result);
-    result.split(" ");
-    console.log(result);
-});
+//var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
+//db.query(sql, (err, result) => {
+//    if(err) throw err;
+//    console.log(result);
 
+//    result.forEach((row) => {
+//        console.log(row.player1wins);
+//        console.log(row.player2wins);  
+//    });
+//});
+
+function get_info(player1ID, player2ID, callback){
+    var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
+    
+    db.query(sql, function(err, results){
+        if (err){ 
+          throw err;
+        }
+        results.forEach((row) => {
+            P1wins = row.player1wins;
+            P2wins = row.player2wins;  
+        });
+        return callback(results.player1wins);
+})
+}
+
+var P1wins;
+var P2wins;
+
+ get_info(player1ID, player2ID, function(result){
+    //rest of your code goes in here
+    console.log(P1wins);
+    console.log(P2wins);
+ });
 
 //closes connection to the database
 db.end((err) => {
