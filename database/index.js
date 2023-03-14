@@ -1,7 +1,7 @@
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
-    host: "database-1.czawgzjnocpk.us-east-1.rds.amazonaws.com",
+    host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
     port: "3306",
     user: "admin",
     password: "password",
@@ -30,16 +30,11 @@ db.connect((err) => {
   console.log("Database connected")
 });
 
-var sql = "CREATE TABLE players (playerID VARCHAR(255), wins INT, losses INT)";
-db.query(sql, function (err, result) {
-  if (err) throw err;
-  console.log("Table 'players' created");
-});
-
-var sql = "ALTER TABLE players ADD PRIMARY KEY(playerID)";
-db.query(sql, function (err, result) {
-  if (err) throw err;
-  console.log("Table 'players' updated");
+//displays all columns
+var sql = "SELECT * FROM players";
+db.query(sql, (err, result) => {
+    if(err) throw err;
+    console.log(result);
 });
 
 //closes connection to the database
