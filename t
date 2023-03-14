@@ -24,14 +24,14 @@ canvas.height = window.innerHeight;
 // open socket for players
 const socket = io("/webpage");
 
-let tanks = [0, 0, 0];
+let tanks = [];
 
 // listen for player data
 socket.on("data", (data) => { // event name 
   // update the players' tanks
   console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
 
-  tanks[0] = -(data.x - 50)/10;
+  tanks[0] = (data.x - 50)/10;
   tanks[1] = (data.y - 50)/10;
   tanks[2] = data.Fire;
 });
@@ -44,8 +44,7 @@ const spriteHeight = 50;
 let x = (canvas.width - spriteWidth)/2;
 let y = (canvas.height - spriteHeight)/2;
 
-function draw() {  
-    setTimeout(draw, 1);
+function draw() {
     move();
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.beginPath();
@@ -58,5 +57,7 @@ function move() {
     x += tanks[0];
     y += tanks[1];
 }
+
+draw();
 </script>
 </html>

@@ -34,7 +34,7 @@ io.of("/client").on('connection', function (socket) {
     }
 
     
-    socket.on("init", function (data) {
+    socket.on("init", function (data) { //username checking
         // console.log("init ", data);
         
         if (!playerNames.includes(data.Username)) {
@@ -46,7 +46,9 @@ io.of("/client").on('connection', function (socket) {
     socket.on("data", function (data) {
         console.log("data ", data);
         data["Player"] = playerId;
-        data["Username"] = playerNames[playerId-1];
+        // data["Username"] = playerNames[playerId-1];
+        // delete data["Fire"];
+        // delete data["y"];
         io.of("/webpage").to(webId).emit("data", data);
     });
 
@@ -65,9 +67,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-    socket.on("lives", function (data) {
-        io.of("/client").to(clientIDs[data.Player]).emit("data", data);
-    });
+    // socket.on("lives", function (data) {
+    //     io.of("/client").to(clientIDs[data.Player]).emit("data", data);
+    // });
 
     socket.on("game over", function (data) {
         // add to database the winner and loser data
