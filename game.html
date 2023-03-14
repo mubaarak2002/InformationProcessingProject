@@ -402,6 +402,22 @@ class Bullet {
   }
 }
 
+// open socket for players
+socket = io("/webpage");
+
+// listen for player data
+// let I = 0
+socket.on("data", (data) => { // event name 
+  // update the players' tanks
+  // console.log(I);
+  // I++;
+  console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
+
+  tanks[parseInt(data.Player)-1].accX = (data.x - 50)*2;
+  tanks[parseInt(data.Player)-1].accY = (data.y - 50)*2;
+  tanks[parseInt(data.Player)-1].fire = data.Fire;
+});
+
 // define the game loop
 let lastTime = 0;
 function gameLoop(timestamp) {
@@ -412,17 +428,6 @@ function gameLoop(timestamp) {
 
   forbiddenSpaces.forEach((space) => {
     drawPoints(space[0], space[1], space[2], space[3]);
-  });
-
-  // listen for player data
-  socket.on("data", (data) => { // event name 
-    // update the players' tanks
-
-    console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
-
-    tanks[parseInt(data.Player)-1].accX = (data.x - 50)*2;
-    tanks[parseInt(data.Player)-1].accY = (data.y - 50)*2;
-    tanks[parseInt(data.Player)-1].fire = data.Fire;
   });
 
   // update tanks
@@ -487,9 +492,6 @@ function init() {
   forbiddenSpaces.forEach((space) => {
     drawPoints(space[0], space[1], space[2], space[3]);
   });
-
-  // open socket for players
-  socket = io("/webpage");
 
   // start the game loop
   gameLoop();

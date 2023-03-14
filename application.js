@@ -45,8 +45,8 @@ io.of("/client").on('connection', function (socket) {
 
     socket.on("data", function (data) {
         console.log("data ", data);
-        data["Player"] = playerNames[playerId-1];
-        data["Username"] = playerUsername;
+        data["Player"] = playerId;
+        data["Username"] = playerNames[playerId-1];
         io.of("/webpage").to(webId).emit("data", data);
     });
 
