@@ -470,11 +470,12 @@ function gameLoop() {
   // let deltaTime = timestamp - lastTime;
   // lastTime = timestamp;
   // clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   if(gamestate === GAMESTATE.RUNNING){
     forbiddenSpaces.forEach((space) => {
       drawPoints(space[0], space[1], space[2], space[3]);
     });
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // update tanks
     tanks.forEach((tank) => {

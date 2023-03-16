@@ -405,6 +405,19 @@ function gameLoop() {
     });
   } else {
     //this is to happen if a tank has died
+    let winner = "";
+    let looser = "";
+
+    tanks.forEach((tank) => {
+      if(tank.health === 0) {
+        looser = tank.player;
+      } else {
+        winner = tank.player;
+      }
+      socket.emit("game over", { player1: str(winner), player2: str(looser), winner: true });
+      
+    });
+    
     
 
   }
