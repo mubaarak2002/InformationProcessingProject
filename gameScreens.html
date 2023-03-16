@@ -44,6 +44,8 @@ let periodPressed = false;
 let spacePressed = false;
 let escPressed = false;
 let enterPressed = false;
+let qPressed = false;
+let winner = "none";
 
 function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
   const canvas = document.getElementById("canvas");
@@ -155,8 +157,12 @@ function keyDownHandler(e) {
     else if(e.keyCode == 27) {
         escPressed = true;
     }
-    if(e.keyCode == 32) {
-        enterPressed = true;
+    else if(e.keyCode == (13 || "Enter")) {
+      // console.log("Enter pressed");
+      enterPressed = true;
+    }
+    if(e.keyCode == 81) {
+        qPressed = true;
     }
 }
 
@@ -185,8 +191,12 @@ function keyUpHandler(e) {
     else if(e.keyCode == 27) {
         escPressed = false;
     }
-    if(e.keyCode == 32) {
-        enterPressed = false;
+    else if(e.keyCode == (13 || "Enter")) {
+      // console.log("Enter pressed");
+      enterPressed = false;
+    }
+    if(e.keyCode == 81) {
+        qPressed = false;
     }
 }
 
@@ -284,7 +294,7 @@ class Tank {
   }
 
   fireBullets() {
-    if (this.fire == "t") {
+    if (this.fire == "1") {
       // check of the tank is allowed to shoot
       const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 2, "black", this);
       bullets.push(bullet); // add the bullet to the bullets array
@@ -335,7 +345,13 @@ class Tank {
       }
       if(this.lives === 0){
         tanks.splice(tanks.indexOf(this), 1);
+        if(this.player = "1"){
+            winner = "1";
+        } else {
+            winner = "2";
+        }
         delete this;
+        gamestate = GAMESTATE.GAMEOVER;
       }
     }
   }
@@ -465,6 +481,9 @@ function gameLoop() {
   if(escPressed){
     togglePause();
   }
+  if(qPressed){
+    restart();
+  }
   update();
   drawState();
   // let deltaTime = timestamp - lastTime;
@@ -472,6 +491,7 @@ function gameLoop() {
   // clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if(gamestate === GAMESTATE.RUNNING){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     forbiddenSpaces.forEach((space) => {
       drawPoints(space[0], space[1], space[2], space[3]);
     });
@@ -493,10 +513,10 @@ function gameLoop() {
     //more keys control stuff
     
     if(spacePressed){
-      tanks[0].fire = 't';
+      tanks[0].fire = '1';
     }
     else{
-      tanks[0].fire = 'f';
+      tanks[0].fire = '0';
     }
     if(rightPressed) {
       tanks[0].accX = 1;
@@ -523,23 +543,44 @@ function gameLoop() {
 }
 
 function start(){
-  if  (gamestate !== GAMESTATE.MENU) return;
+    if  (gamestate !== GAMESTATE.MENU) return;
+    if(tanks.length !== 2){
+        for(let i=0; i<tanks.length; i++){
+            tanks.splice(i, 1);
+        }
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+    } else {
+        for(let i = 0; i < tanks.length; i++){
+            tanks[i].reset(); 
+        }
+    }
+    // ADD LEVEL STUFF ONCE DONE
+    gamestate = GAMESTATE.RUNNING;
+}
 
-  // ADD LEVEL STUFF ONCE DONE
-  
-  for(let i = 0; i < tanks.length; i++){
-    tanks[i].reset(); //TODO: ADD RESET FUNCTION
-  }
-  
-  gamestate = GAMESTATE.RUNNING;
+function restart(){
+    if(tanks.length !== 2){
+        for(let i=0; i<tanks.length; i++){
+            tanks.splice(i, 1);
+        }
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+    } else {
+        for(let i = 0; i < tanks.length; i++){
+            tanks[i].reset(); 
+        }
+    }
+    // ADD LEVEL STUFF ONCE DONE
+    gamestate = GAMESTATE.MENU;
 }
 
 function update(){
-  for(let i = 0; i < tanks.length; i++){
+  /* for(let i = 0; i < tanks.length; i++){
     if(tanks[i].lives === 0){
       gamestate = GAMESTATE.GAMEOVER;
     }
-  }
+  } */
 
   if  (
         gamestate === GAMESTATE.PAUSED ||
@@ -583,11 +624,7 @@ function drawState(){
     ctx.font = "30px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
-    if((tanks[0].lives === 0) && (tanks[1].lives !== 0)){
-      ctx.fillText("Player " + tanks[1].player + " Wins", canvas.width / 2, canvas.height / 2);
-    } else if ((tanks[1].lives === 0) && (tanks[0].lives !== 0)) {
-      ctx.fillText("Player " + tanks[0].player + " Wins", canvas.width / 2, canvas.height / 2);
-    }
+    ctx.fillText("Player " + winner + " Wins", canvas.width / 2, canvas.height / 2);
     
   }
 }
@@ -613,8 +650,8 @@ function init() {
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
-  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "f"));
-  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "f"));
+  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
 
   forbiddenSpaces.forEach((space) => {
     drawPoints(space[0], space[1], space[2], space[3]);
