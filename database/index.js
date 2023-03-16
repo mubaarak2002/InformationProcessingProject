@@ -17,7 +17,7 @@ const db = mysql.createConnection({
 //playerID is the primary key
 
 //Table "rivalries" structure:
-//|player1ID | player2ID | player1wins | player2 wins |
+//|player1ID | password | player2ID | player1wins | player2 wins |
 //player1ID and player2ID form a composite key
 
 
@@ -32,6 +32,13 @@ db.connect((err) => {
 
 //displays all columns
 var sql = "SELECT * FROM players";
+db.query(sql, (err, result) => {
+    if(err) throw err;
+    console.log(result);
+});
+
+//displays all columns
+var sql = "UPDATE players SET password = 'password' WHERE playerID = 'Omar';";
 db.query(sql, (err, result) => {
     if(err) throw err;
     console.log(result);
