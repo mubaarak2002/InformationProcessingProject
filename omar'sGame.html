@@ -46,24 +46,60 @@ let spacePressed = false;
 let maxLives = 3;
 
 
-// function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
-//   const canvas = document.getElementById("canvas");
-//   const ctx = canvas.getContext("2d");
+function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
   
-//   ctx.fillStyle = "black";
-//   ctx.fillRect(topLeft[0], topLeft[1], -(topLeft[0] - topRight[0]), -(topLeft[1] - bottomLeft[1]));
+  ctx.fillStyle = "black";
+  ctx.fillRect(topLeft[0], topLeft[1], -(topLeft[0] - topRight[0]), -(topLeft[1] - bottomLeft[1]));
 
-// }
+}
+
+function allowableMove(forbiddenSpaces, currentx, currenty, dx, dy) {
+  let legalXMove = true;
+  let legalYMove = true;
+  forbiddenSpaces.forEach(function check(space, index){
+      //given the lines are straight lines, a vertex will always define the maximum and minimum
+      //x and y values. This means that we can establish that the new y value cannot be inside
+      //the min/max y verticies if the new x value is also inside the min/max x verticies
+
+      let nx = currentx + dx
+      let ny = currenty + dy;
+      let minx = space[0][0];
+      let miny = space[0][1];
+      let maxx = space[1][0];
+      let maxy = space[1][1];
+
+      space.forEach(function thing(vertex, index) {
+ 
+        if (vertex[0] < minx) {
+          minx = vertex[0];
+        }
+        if (vertex[0] > maxx) {
+          maxx = vertex[0];
+        }
+        if (vertex[1] < miny) {
+          miny = vertex[1];
+        }
+        if (vertex[1] > maxy) {
+          maxy = vertex[1];
+        }
+      });
+      
+      if (ny < maxy && ny > miny && nx < maxx && nx > minx) {
+        legalYMove = false;
+      }
+      if (nx < maxx && nx > minx && ny < maxy && ny > miny) {
+        legalXMove = false;
+      }
+    });
+  return[legalXMove, legalYMove];
+}
+            
 
 // height of window for reference 
-if(window.innerHeight < window.innerWidth){
 canvas.height = window.innerHeight; //lock to 4:3 aspect ratio
 canvas.width = canvas.height * 1.33;
-}
-else if(window.innerHeight >= window.innerWidth){
-canvas.width = window.innerWidth; //lock to 4:3 aspect ratio
-canvas.height = canvas.width * 0.75;
-}
 
 
 //inside this should be rectangles with 4 points inside it to define a rectangle where you cannot
@@ -71,21 +107,20 @@ canvas.height = canvas.width * 0.75;
 //and dx/dy is bigger than the width, you could jump through a square
 //eg: const forbiddenSpaces = [ [[1,1], [2,2], [3,3], [4,4]] ] 
 //change this to "const", not "let"
-//let forbiddenSpaces = [];
+let forbiddenSpaces = [];
 //this is adding the wall boundaries to it:
 //"+/- 2" is just to give the wall some non-zero thickness
 
 //this is a square in the middle of edge length 50
 //MUST BE OF THE FORMAT [ [top left], [top right], [bottom left], [bottom right] ]
-// forbiddenSpaces = [ 
-//                     [
-//                        [canvas.width/2 - 50, canvas.height/2 - 50],
-//                        [canvas.width/2 + 50, canvas.height/2 - 50],
-//                        [canvas.width/2 - 50, canvas.height/2 + 50],
-//                        [canvas.width/2 + 50, canvas.height/2 + 50]
-//                     ]
-
-//                   ];
+forbiddenSpaces = [ 
+                    [
+                       [canvas.width/2 - 50, canvas.height/2 - 50],
+                       [canvas.width/2 + 50, canvas.height/2 - 50],
+                       [canvas.width/2 - 50, canvas.height/2 + 50],
+                       [canvas.width/2 + 50, canvas.height/2 + 50]
+                    ]
+                  ];
 
 // define arrays for tanks and bullets
 let tanks = [];
@@ -93,78 +128,6 @@ let bullets = [];
 let walls = [];
 // TODO: draw arena borders
 
-//stuff for key controls. Comment out if not using
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-
-function keyDownHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed = true;
-    }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed = true;
-    }
-    if(e.key == "Up" || e.key == "ArrowUp") {
-        upPressed = true;
-    }
-    else if(e.key == "down" || e.key == "ArrowDown") {
-        downPressed = true;
-    }
-    if(e.keyCode == 188) {
-        commaPressed = true;
-    }
-    else if(e.keyCode == 190) {
-        periodPressed = true;
-    }
-    if(e.keyCode == 32) {
-        spacePressed = true;
-    }
-}
-
-function keyUpHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed = false;
-    }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed = false;
-    }
-    if(e.key == "Up" || e.key == "ArrowUp") {
-        upPressed = false;
-    }
-    else if(e.key == "down" || e.key == "ArrowDown") {
-        downPressed = false;
-    }
-    if(e.keyCode == 188) {
-        commaPressed = false;
-    }
-    else if(e.keyCode == 190) {
-        periodPressed = false;
-    }
-    if(e.keyCode == 32) {
-        spacePressed = false;
-    }
-}
-
-// TODO: draw arena borders
-
-//define a small square wall block
-class Wall {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.width = 40;
-    this.height = 40;
-  }
-
-  draw() {
-    ctx.beginPath();
-    ctx.fillStyle = "Grey"; 
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-    ctx.fillStyle = "Orange";
-    ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
-    ctx.closePath();
-  }
-}
 // define the Tank class
 class Tank {
   constructor(x, y, accX, accY, colour, player, fire) {
@@ -187,6 +150,7 @@ class Tank {
   }
 
   draw() {
+
     // ctx.save();  
     ctx.beginPath();
     this.angle = Math.atan2(this.accY, this.accX) + (Math.PI * 0.5);                     //tank object contains postion change info (here used to calculate direction of travel)
@@ -232,10 +196,16 @@ class Tank {
     let nx = Math.cos(this.angle) * this.magnitude * this.speed;
     let ny = Math.sin(this.angle) * this.magnitude * this.speed;
     
-    this.x += nx;
-    this.y += ny;
 
-    this.detectCollision(nx, ny);
+    if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[0]) {
+
+      this.x += nx;
+    }
+    if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[1]) {
+
+      this.y += ny;
+    }
+    this.detectCollision();
     this.draw();
   }
 
@@ -247,7 +217,7 @@ class Tank {
     }
   }
 
-  detectCollision(nx, ny) {
+  detectCollision() {
     // detect collision with other tanks
     tanks.forEach((tank) => {
       if (tank !== this) {
@@ -267,22 +237,6 @@ class Tank {
           tank.y += moveY / 2;
          }
       }
-    });
-
-    //detect collision with walls
-
-    walls.forEach((wall) => {
-      //this is slightly funky, since collision detection is being called after the tank has moved
-      //so we're calling it on the current x, rather than x + dx (detect a collision after it has already occurred)
-        if (this.x + this.width/2 > wall.x && 
-            this.x - this.width/2 < (wall.x + wall.width) &&
-            this.y + this.width/2 > wall.y &&
-            this.y - this.width/2 < (wall.y + wall.height)) {
-              //console.log("collision");
-
-              this.x -= nx;
-              this.y -= ny;
-            }
     });
 
     // detect collision with simple arena borders
@@ -340,15 +294,18 @@ class Bullet {
   }
 
   move() {
-
+    if (allowableMove(forbiddenSpaces, this.x, this.y, this.dx, this.dy)[0] && allowableMove(forbiddenSpaces, this.x, this.y, this.dx, this.dy)[1]) {
       this.x += this.dx;
       this.y += this.dy;
+    } else {
+      bullets.splice(bullets.indexOf(this), 1); 
+      delete this;
+    }
 
     // detect collision with arena borders
     if (this.x + this.dx > canvas.width - this.radius|| this.x + this.dx < this.radius) {           //if colliding with edge of canvas, reflect
       if(this.angle === 2*Math.PI || this.angle === 3*Math.PI) {
-        bullets.splice(bullets.indexOf(this), 1); 
-        delete this;
+
       } else {
         this.dx = -this.dx;
         this.dirChange ++;
@@ -363,7 +320,7 @@ class Bullet {
         this.dirChange ++;
       }
     }
-    if(this.dirChange > 2){
+    if(this.dirChange > 1){
       bullets.splice(bullets.indexOf(this), 1);          
       delete this;                   //if 2nd bounce off wall, delete;
     }
@@ -381,72 +338,7 @@ class Bullet {
         }
       }
     });
-
-    //detect collision with walls
-    walls.forEach((wall) => {
-      //this is slightly funky, since collision detection is being called after the tank has moved
-      //so we're calling it on the current x, rather than x + dx (detect a collision after it has already occurred)
-        if (this.x + this.radius > wall.x && 
-            this.x - this.radius < (wall.x + wall.width) &&
-            this.y + this.radius > wall.y &&
-            this.y - this.radius < (wall.y + wall.height)) {
-
-              this.x -= this.dx;
-              this.y -= this.dy;
-              //to calc angle of bullet reflection, find which direction bullet is coming into wall
-              let dx = (wall.x + wall.width/2) - this.x;
-              let dy = (wall.y + wall.height/2) - this.y;
-              let angle = Math.atan2(dy, dx);
-              //dx and dy not to be confused with the parameters we use for movement: this.dx and this.dy
-
-              if((1.75*Math.PI < this.angle && this.angle < 2.25*Math.PI) || (2.75*Math.PI < this.angle && this.angle < 3.25*Math.PI)){
-                //console.log("bounce dx");
-                this.dx = -this.dx;
-                this.dirChange++;
-              }
-              else if((2.25*Math.PI < this.angle  && this.angle < 2.75*Math.PI) || (1.25*Math.PI < this.angle && this.angle < 1.75*Math.PI)){
-                //console.log("bounce dy");
-                this.dy = -this.dy;
-                this.dirChange++;
-              }
-              else{
-                bullets.splice(bullets.indexOf(this), 1);
-                delete this;
-              }
-            }
-    });
   }
-}
-
-//builds walls in an L shape
-function wallsL(x, y, breadth, length, angle, reverse){
-                //x/y give location, 
-                //width/height give shape dimensions (in blocks), 
-                //angle rotates shape
-                //reverse flips laterally (its a boolean)
-    if(!reverse){
-      for(let i = 0; i <= breadth; i++){
-          ctx.rotate(angle);
-          walls.push(new Wall(x + i*40, y));
-          ctx.rotate(-angle);
-      }
-      for(let j = 0; j <= length; j++){
-          ctx.rotate(angle);
-          walls.push(new Wall(x + breadth*40, y + j*40));
-      }
-    }
-    else{
-      for(let i = 0; i <= breadth; i++){
-          ctx.rotate(angle);
-          walls.push(new Wall(x - i*40, y));
-          ctx.rotate(-angle);
-      }
-      for(let j = 0; j <= length; j++){
-          ctx.rotate(angle);
-          walls.push(new Wall(x - breadth*40, y - j*40));
-          ctx.rotate(-angle);
-      }
-    }
 }
 
 // open socket for players
@@ -479,21 +371,18 @@ let lastTime = 0;
 // function gameLoop(timestamp) {
 
 //gameOver is a boolean to end the game
-let gameOver = false;
+let keepGoing = true;
 
 function gameLoop() {
-
   //checking conditions if the game is over (a tank has lost all it's lives)
   tanks.forEach((tank) => {
 
     if(tank.lives === 0) {
-      gameOver = true;
+      keepGoing = false;
     }
   });
 
-
-
-  if(!gameOver) {  
+  if(keepGoing) {  
     setTimeout(gameLoop, 0.5);
 
     // let deltaTime = timestamp - lastTime;
@@ -501,96 +390,176 @@ function gameLoop() {
     // clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // forbiddenSpaces.forEach((space) => {
-  //   drawPoints(space[0], space[1], space[2], space[3]);
-  // });
+    if(gamestate === GAMESTATE.RUNNING){
+      forbiddenSpaces.forEach((space) => {
+        drawPoints(space[0], space[1], space[2], space[3]);
+      });
 
-  // update tanks
-  tanks.forEach((tank) => {
-    //tank.draw(); //moved the draw function into the move function
-    tank.move();
-    tank.checkHealth();
-    tank.fireBullets();
+    // update tanks
+    tanks.forEach((tank) => {
+      //tank.draw(); //moved the draw function into the move function
+      tank.move();
+      tank.checkHealth();
+      tank.fireBullets();
+      tank.draw();
 
-    if (tank.lives != tank.previousLives) {
-      livesSend = tank.lives.toString() + 'f';
-      socket.emit("clientData", {Player: tank.player, Lives: livesSend});
-      tank.previousLives = tank.lives;
+      if (tank.lives != tank.previousLives) {
+        livesSend = tank.lives.toString() + 'f';
+        socket.emit("clientData", {Player: tank.player, Lives: livesSend});
+        tank.previousLives = tank.lives;
+      }
+    });
+
+      // update bullets
+      bullets.forEach((bullet) => {
+        bullet.draw();
+        bullet.move();
+      });   
+
+   
+    // // request the next frame
+    // requestAnimationFrame(gameLoop);
     }
-  });
-
-  walls.forEach((wall) => {
-    wall.draw();
-  });
-
-  // update bullets
-  bullets.forEach((bullet) => {
-    bullet.draw();
-    bullet.move();
-  });
-
-  // if(spacePressed){
-  //   tanks[0].fire = 1;
-  //   spacePressed = false;
-  // }
-  // else{
-  //   tanks[0].fire = 0;
-  // }
-  // if(rightPressed) {
-  //   tanks[0].accX = 1;
-  // }
-  // else if(leftPressed) {
-  //   tanks[0].accX = -1;
-  // }
-  // else{
-  //   tanks[0].accX = 0;
-  // }
-
-  // if(upPressed) {
-  //   tanks[0].accY = -1;
-  // }
-  // else if(downPressed) {
-  //   tanks[0].accY = 1;
-  // }
-  // else{
-  //   tanks[0].accY = 0;
-  // }
 
   } else {
-    //this is to happen if a tank has died
-    let winner = "";
-    let loser = "";
+      console.log("end");
+      //this is to happen if a tank has died
+      let winner = "";
+      let looser = "";
 
-    tanks.forEach((tank) => {
-      if(tank.health === 0) {
-        loser = tank.player;
-      } else {
-        winner = tank.player;
-      }
-      socket.emit("game over", { player1: str(winner), player2: str(loser), winner: true });
-      
-    });
-    
-    
+      tanks.forEach((tank) => {
+        if(tank.health === 0) {
+          looser = tank.player;
+        } else {
+          winner = tank.player;
+        }
+        socket.emit("game over", { player1: String(winner), player2: String(looser), winner: true });
+        
+      });
 
   }
-  // // request the next frame
-  // requestAnimationFrame(gameLoop);
+}
+
+
+
+//yomnas functions:
+
+function togglePause() {
+    if (gamestate === GAMESTATE.PAUSED) {
+      gamestate = GAMESTATE.RUNNING;
+    } else {
+      gamestate = GAMESTATE.PAUSED;
+    }
 }
 
 // initialize the game
+const GAMESTATE = {
+    PAUSED: 0,
+    RUNNING: 1,
+    MENU: 2,
+    GAMEOVER: 3
+};
+
+function start(){
+  if  (gamestate !== GAMESTATE.MENU) return;
+
+  // ADD LEVEL STUFF ONCE DONE
+  
+  for(let i = 0; i < tanks.length; i++){
+    tanks[i].reset(); //TODO: ADD RESET FUNCTION
+  }
+  
+  gamestate = GAMESTATE.RUNNING;
+}
+
+function update(){
+  for(let i = 0; i < tanks.length; i++){
+    if(tanks[i].lives === 0){
+      gamestate = GAMESTATE.GAMEOVER;
+    }
+  }
+
+  if  (
+        gamestate === GAMESTATE.PAUSED ||
+        gamestate === GAMESTATE.MENU ||
+        gamestate === GAMESTATE.GAMEOVER
+      ) return;
+}
+
+function drawState(){
+  if (gamestate === GAMESTATE.PAUSED) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.5";
+    ctx.fill();
+
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText("Paused", canvas.width / 2, canvas.height / 2);
+  }
+
+  if (gamestate === GAMESTATE.MENU) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        "Press ENTER To Start",
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
+  if (gamestate === GAMESTATE.GAMEOVER) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    if((tanks[0].lives === 0) && (tanks[1].lives !== 0)){
+      ctx.fillText("Player " + tanks[1].player + " Wins", canvas.width / 2, canvas.height / 2);
+    } else if ((tanks[1].lives === 0) && (tanks[0].lives !== 0)) {
+      ctx.fillText("Player " + tanks[0].player + " Wins", canvas.width / 2, canvas.height / 2);
+    }
+    
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// initialize the game
 function init() {
+
+  gamestate = GAMESTATE.RUNNING;
   document.body.appendChild(canvas);
 
   // create tanks
   // initialise tank positions to center and facing each other
   tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
   tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
-  wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
 
-  // forbiddenSpaces.forEach((space) => {
-  //   drawPoints(space[0], space[1], space[2], space[3]);
-  // });
+  forbiddenSpaces.forEach((space) => {
+    drawPoints(space[0], space[1], space[2], space[3]);
+  });
 
   // start the game loop
   gameLoop();
