@@ -46,14 +46,14 @@ let spacePressed = false;
 let maxLives = 3;
 
 
-function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+// function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
+//   const canvas = document.getElementById("canvas");
+//   const ctx = canvas.getContext("2d");
   
-  ctx.fillStyle = "black";
-  ctx.fillRect(topLeft[0], topLeft[1], -(topLeft[0] - topRight[0]), -(topLeft[1] - bottomLeft[1]));
+//   ctx.fillStyle = "black";
+//   ctx.fillRect(topLeft[0], topLeft[1], -(topLeft[0] - topRight[0]), -(topLeft[1] - bottomLeft[1]));
 
-}
+// }
 
 // height of window for reference 
 if(window.innerHeight < window.innerWidth){
@@ -92,26 +92,6 @@ let tanks = [];
 let bullets = [];
 let walls = [];
 // TODO: draw arena borders
-
-//define a small square wall block
-class Wall {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.width = 40;
-    this.height = 40;
-  }
-
-  draw() {
-    ctx.beginPath();
-    ctx.fillStyle = "Grey"; 
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-    ctx.fillStyle = "Orange";
-    ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
-    ctx.closePath();
-  }
-}
-
 
 //stuff for key controls. Comment out if not using
 document.addEventListener("keydown", keyDownHandler, false);
@@ -464,6 +444,7 @@ function wallsL(x, y, breadth, length, angle, reverse){
       for(let j = 0; j <= length; j++){
           ctx.rotate(angle);
           walls.push(new Wall(x - breadth*40, y - j*40));
+          ctx.rotate(-angle);
       }
     }
 }
@@ -538,11 +519,43 @@ function gameLoop() {
     }
   });
 
-    // update bullets
-    bullets.forEach((bullet) => {
-      bullet.draw();
-      bullet.move();
-    });
+  walls.forEach((wall) => {
+    wall.draw();
+  });
+
+  // update bullets
+  bullets.forEach((bullet) => {
+    bullet.draw();
+    bullet.move();
+  });
+
+  // if(spacePressed){
+  //   tanks[0].fire = 1;
+  //   spacePressed = false;
+  // }
+  // else{
+  //   tanks[0].fire = 0;
+  // }
+  // if(rightPressed) {
+  //   tanks[0].accX = 1;
+  // }
+  // else if(leftPressed) {
+  //   tanks[0].accX = -1;
+  // }
+  // else{
+  //   tanks[0].accX = 0;
+  // }
+
+  // if(upPressed) {
+  //   tanks[0].accY = -1;
+  // }
+  // else if(downPressed) {
+  //   tanks[0].accY = 1;
+  // }
+  // else{
+  //   tanks[0].accY = 0;
+  // }
+
   } else {
     //this is to happen if a tank has died
     let winner = "";
