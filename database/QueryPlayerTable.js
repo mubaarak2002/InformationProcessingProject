@@ -66,15 +66,6 @@ db.query(sql, (err, result) => {
     console.log(result);
 });
 
-
-
-
-
-//closes connection to the database
-db.end((err) => {
-    console.log("connection ended");
-  });
-
 //closes connection to the database
 db.end((err) => {
     console.log("connection ended");
