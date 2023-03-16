@@ -634,7 +634,7 @@ function gameLoop() {
         // socket.emit("clientData", {Player: tank.player, Lives: tank.lives.toString()});
         if (tank.lives != tank.previousLives) {
             livesSend = tank.lives.toString() + 'f';
-            // socket.emit("clientData", {Player: tank.player, Lives: livesSend});
+            socket.emit("clientData", {Player: tank.player, Lives: livesSend});
             tank.previousLives = tank.lives;
         }
     });
