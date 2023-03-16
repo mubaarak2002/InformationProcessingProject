@@ -43,6 +43,9 @@ let commaPressed = false;
 let periodPressed = false;
 let spacePressed = false;
 
+let maxLives = 3;
+
+
 function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
@@ -142,7 +145,7 @@ class Tank {
     this.health = 100;
     this.player = player;
     this.fire = fire;
-    this.lives = 3;
+    this.lives = maxLives;
   }
 
   draw() {
@@ -358,33 +361,53 @@ socket.on("data", (data) => { // event name
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
+
+//gameOver is a boolean to end the game
+let gameOver = false;
+
 function gameLoop() {
-  setTimeout(gameLoop, 0.5);
 
-  // let deltaTime = timestamp - lastTime;
-  // lastTime = timestamp;
-  // clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  forbiddenSpaces.forEach((space) => {
-    drawPoints(space[0], space[1], space[2], space[3]);
-  });
-
-  // update tanks
+  //checking conditions if the game is over (a tank has lost all it's lives)
   tanks.forEach((tank) => {
-    //tank.draw(); //moved the draw function into the move function
-    tank.move();
-    tank.checkHealth();
-    tank.fireBullets();
-    // socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
+
+    if(tank.lives === 0) {
+      gameOver = true;
+    }
   });
 
-  // update bullets
-  bullets.forEach((bullet) => {
-    bullet.draw();
-    bullet.move();
-  });
 
+
+  if(!gameOver) {  
+    setTimeout(gameLoop, 0.5);
+
+    // let deltaTime = timestamp - lastTime;
+    // lastTime = timestamp;
+    // clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    forbiddenSpaces.forEach((space) => {
+      drawPoints(space[0], space[1], space[2], space[3]);
+    });
+
+    // update tanks
+    tanks.forEach((tank) => {
+      //tank.draw(); //moved the draw function into the move function
+      tank.move();
+      tank.checkHealth();
+      tank.fireBullets();
+      // socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
+    });
+
+    // update bullets
+    bullets.forEach((bullet) => {
+      bullet.draw();
+      bullet.move();
+    });
+  } else {
+    //this is to happen if a tank has died
+    
+
+  }
   // // request the next frame
   // requestAnimationFrame(gameLoop);
 }
