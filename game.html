@@ -146,6 +146,7 @@ class Tank {
     this.player = player;
     this.fire = fire;
     this.lives = maxLives;
+    this.previousLives = maxLives + 1;
   }
 
   draw() {
@@ -208,7 +209,7 @@ class Tank {
   }
 
   fireBullets() {
-    if (this.fire == "t") {
+    if (this.fire == "1") {
       // check of the tank is allowed to shoot
       const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 5, "black", this);
       bullets.push(bullet); // add the bullet to the bullets array
@@ -253,8 +254,14 @@ class Tank {
 
   checkHealth() {
     if(this.health <= 0){
-      tanks.splice(tanks.indexOf(this), 1);
-      delete this;
+      if(this.lives !== 0){
+        this.lives -= 1;
+        this.health = 100;
+      }
+      if(this.lives === 0){
+        tanks.splice(tanks.indexOf(this), 1);
+        delete this;
+      }
     }
   }
 }
@@ -389,14 +396,19 @@ function gameLoop() {
       drawPoints(space[0], space[1], space[2], space[3]);
     });
 
-    // update tanks
-    tanks.forEach((tank) => {
-      //tank.draw(); //moved the draw function into the move function
-      tank.move();
-      tank.checkHealth();
-      tank.fireBullets();
-      // socket.emit("lives", {Player: tank.player, Lives: tank.lives.toString()});
-    });
+  // update tanks
+  tanks.forEach((tank) => {
+    //tank.draw(); //moved the draw function into the move function
+    tank.move();
+    tank.checkHealth();
+    tank.fireBullets();
+
+    if (tank.lives != tank.previousLives) {
+      livesSend = tank.lives.toString() + 'f';
+      socket.emit("clientData", {Player: tank.player, Lives: livesSend});
+      tank.previousLives = tank.lives;
+    }
+  });
 
     // update bullets
     bullets.forEach((bullet) => {
@@ -431,8 +443,8 @@ function init() {
 
   // create tanks
   // initialise tank positions to center and facing each other
-  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "f"));
-  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "f"));
+  tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+  tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
 
   forbiddenSpaces.forEach((space) => {
     drawPoints(space[0], space[1], space[2], space[3]);

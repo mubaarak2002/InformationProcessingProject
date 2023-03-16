@@ -46,10 +46,12 @@ io.of("/client").on('connection', function (socket) {
     socket.on("data", function (data) {
         console.log("data ", data);
         data["Player"] = playerId;
-        // data["Username"] = playerNames[playerId-1];
+        data["Username"] = playerNames[playerId-1];
         // delete data["Fire"];
         // delete data["y"];
         io.of("/webpage").to(webId).emit("data", data);
+        // let lives = {"Lives: ": '3'};
+        // socket.emit("clientData", lives);
     });
 
 	socket.on("disconnect", function () {
@@ -67,9 +69,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-    // socket.on("lives", function (data) {
-    //     io.of("/client").to(clientIDs[data.Player]).emit("data", data);
-    // });
+    socket.on("clientData", function (data) {
+        let player = data.Player;
+        delete data.Player;
+        // console.log(data);
+        io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
+    });
 
     socket.on("game over", function (data) {
         // add to database the winner and loser data
