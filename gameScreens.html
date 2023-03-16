@@ -626,6 +626,22 @@ function drawState(){
     ctx.textAlign = "center";
     ctx.fillText("Player " + winner + " Wins", canvas.width / 2, canvas.height / 2);
     
+    //added "game ending" server
+    let winner = "";
+      let looser = "";
+
+      tanks.forEach((tank) => {
+        if(tank.health === 0) {
+          looser = tank.player;
+        } else {
+          winner = tank.player;
+        }
+        
+      });
+      socket.emit("game over", { player1: String(winner), player2: String(looser), winner: true });
+      socket.on("history", (data) => {
+        console.log(data);
+      });
   }
 }
 

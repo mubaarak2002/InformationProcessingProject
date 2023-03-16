@@ -11,7 +11,7 @@ server.listen(3000, () => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/game.html");
+  res.sendFile(__dirname + "/gameScreens.html");
 });
 
 let clientIDs = [];
