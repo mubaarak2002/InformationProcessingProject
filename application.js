@@ -19,6 +19,7 @@ let playerNames = [];
 let webId = null;
 
 io.of("/client").on('connection', function (socket) {
+    console.log(socket.id);
     let playerId;
     if (clientIDs[0] == null){
         clientIDs[0] = socket.id;
@@ -44,7 +45,8 @@ io.of("/client").on('connection', function (socket) {
 
 
     socket.on("data", function (data) {
-        console.log("data ", data);
+        // console.log("data ", data);
+        console.log("gotdatafrom: ", data.Username);
         data["Player"] = playerId;
         data["Username"] = playerNames[playerId-1];
         // delete data["Fire"];
@@ -74,6 +76,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         delete data.Player;
         // console.log(data);
         io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
+        // console.log(player, " send lives to ", clientIDs[player - 1]);
     });
 
     socket.on("game over", function (data) {

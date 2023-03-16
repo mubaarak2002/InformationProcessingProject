@@ -25,7 +25,7 @@
   <!-- <img id="tankImg" src="assets/tank.png"> -->
 
 <canvas id="canvas"></canvas>
-<!-- <script src="/socket.io/socket.io.js"></script> -->
+<script src="/socket.io/socket.io.js"></script>
 <script>
     
 // define global variables
@@ -248,7 +248,8 @@ class Tank {
     this.player = player;
     this.username = username;
     this.fire = fire;
-    this.previousFire = "f";
+    // this.previousFire = "0";
+    this.fireable = 1;
     this.lives = maxLives;
     this.previousLives = maxLives + 1;
   }
@@ -331,8 +332,11 @@ class Tank {
   fireBullets() {
     if (this.fire == "1") {
       // check of the tank is allowed to shoot
-      const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 2, "black", this);
+      const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 100, "black", this);
       bullets.push(bullet); // add the bullet to the bullets array
+
+      this.fire = "0";
+      this.fireable = 0;
     }
   }
 
@@ -568,23 +572,32 @@ socket.on("data", (data) => { // event name
   // console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
 
     if (data.hasOwnProperty('x')){
-    tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
+      tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
     }
 
     if (data.hasOwnProperty('y')){
-    tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
+      tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
     }
   
     if (data.hasOwnProperty('Fire')){
-        if(tanks[parseInt(data.Player)-1].previousFire === "0" && data.Fire === "1"){
-            tanks[parseInt(data.Player)-1].fire = data.Fire;
-            tanks[parseInt(data.Player)-1].previousFire = "1";
-        } else if(tanks[parseInt(data.Player)-1].previousFire === "1" && data.Fire === "1") {
-            tanks[parseInt(data.Player)-1].fire = "0";
-        }  else if(tanks[parseInt(data.Player)-1].previousFire === "1" && data.Fire === "0") {
-            tanks[parseInt(data.Player)-1].fire = "0";
-            tanks[parseInt(data.Player)-1].previousFire = "0";
+        // console.log(tanks[parseInt(data.Player)-1].previousFire, "  ", data.Fire);
+        if (data.Fire == "1" && tanks[parseInt(data.Player)-1].fireable == 1) {
+          tanks[parseInt(data.Player)-1].fire = "1";
         }
+
+        if (data.Fire == "0") {
+          tanks[parseInt(data.Player)-1].fireable = 1;
+        }
+
+        // if(tanks[parseInt(data.Player)-1].previousFire == "0" && data.Fire == "1"){
+        //     tanks[parseInt(data.Player)-1].fire = data.Fire;
+        //     tanks[parseInt(data.Player)-1].previousFire = "1";
+        // } else if(tanks[parseInt(data.Player)-1].previousFire == "1" && data.Fire == "1") {
+        //     tanks[parseInt(data.Player)-1].fire = "0";
+        // } else {
+        //     tanks[parseInt(data.Player)-1].fire = "0";
+        //     tanks[parseInt(data.Player)-1].previousFire = "0";
+        // }
     }
     
 
@@ -648,6 +661,7 @@ function gameLoop() {
       bullet.move();
     });
     //more keys control stuff
+  }
     
 //     if(spacePressed){
 //       tanks[0].fire = '1';
@@ -825,7 +839,7 @@ function init() {
 
 init();
 
-  </script>
+</script>
 </body>
 
 </html>
