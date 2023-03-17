@@ -25,7 +25,7 @@
   <!-- <img id="tankImg" src="assets/tank.png"> -->
 
 <canvas id="canvas"></canvas>
-<!-- <script src="/socket.io/socket.io.js"></script> -->
+<script src="/socket.io/socket.io.js"></script>
 <script>
     
 // define global variables
@@ -42,10 +42,9 @@ let downPressed = false;
 let commaPressed = false;
 let periodPressed = false;
 let spacePressed = false;
-let escPressed = false;
-let enterPressed = false;
-let qPressed = false;
-let winner = "none";
+
+let maxLives = 3;
+
 
 function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
   const canvas = document.getElementById("canvas");
@@ -128,77 +127,6 @@ let tanks = [];
 let bullets = [];
 let walls = [];
 // TODO: draw arena borders
-//stuff for key controls. Comment out if not using
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-
-function keyDownHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed = true;
-    }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed = true;
-    }
-    if(e.key == "Up" || e.key == "ArrowUp") {
-        upPressed = true;
-    }
-    else if(e.key == "down" || e.key == "ArrowDown") {
-        downPressed = true;
-    }
-    if(e.keyCode == 188) {
-        commaPressed = true;
-    }
-    else if(e.keyCode == 190) {
-        periodPressed = true;
-    }
-    else if(e.keyCode == 32) {
-        spacePressed = true;
-    }
-    else if(e.keyCode == 27) {
-        escPressed = true;
-    }
-    else if(e.keyCode == (13 || "Enter")) {
-      // console.log("Enter pressed");
-      enterPressed = true;
-    }
-    if(e.keyCode == 81) {
-        qPressed = true;
-    }
-}
-
-function keyUpHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed = false;
-    }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed = false;
-    }
-    if(e.key == "Up" || e.key == "ArrowUp") {
-        upPressed = false;
-    }
-    else if(e.key == "down" || e.key == "ArrowDown") {
-        downPressed = false;
-    }
-    if(e.keyCode == 188) {
-        commaPressed = false;
-    }
-    else if(e.keyCode == 190) {
-        periodPressed = false;
-    }
-    else if(e.keyCode == 32) {
-        spacePressed = false;
-    }
-    else if(e.keyCode == 27) {
-        escPressed = false;
-    }
-    else if(e.keyCode == (13 || "Enter")) {
-      // console.log("Enter pressed");
-      enterPressed = false;
-    }
-    if(e.keyCode == 81) {
-        qPressed = false;
-    }
-}
 
 // define the Tank class
 class Tank {
@@ -213,14 +141,16 @@ class Tank {
     this.angle = 0;     //angle of movement
     this.shotAngle = 0; //angle of shooting
     this.magnitude = 0;
-    this.speed = 2;
+    this.speed = 5;
     this.health = 100;
     this.player = player;
     this.fire = fire;
-    this.lives = 3;
+    this.lives = maxLives;
+    this.previousLives = maxLives + 1;
   }
 
   draw() {
+
     // ctx.save();  
     ctx.beginPath();
     this.angle = Math.atan2(this.accY, this.accX) + (Math.PI * 0.5);                     //tank object contains postion change info (here used to calculate direction of travel)
@@ -256,25 +186,11 @@ class Tank {
                         
   }
 
+
   move() {
     // Caculate angle and magnitude of movement based on the acceleration
     this.magnitude = Math.sqrt(this.accX * this.accX + this.accY * this.accY);
     this.angle = Math.atan2(this.accY, this.accX);
-
-    // // Limit magnitude
-    // if (this.magnitude >= 141) {
-    //   this.magnitude = 141;
-    // } else if (this.magnitude >= 100) {
-    //   this.magnitude = 100;
-    // } else if (this.magnitude >= 75) {
-    //   this.magnitude = 75;
-    // } else if (this.magnitude >= 50) {
-    //   this.magnitude = 50;
-    // } else if (this.magnitude >= 25) {
-    //   this.magnitude = 25;
-    // } else {
-    //   this.magnitude = 0;
-    // }
 
     // Update coordinates
     let nx = Math.cos(this.angle) * this.magnitude * this.speed;
@@ -296,7 +212,7 @@ class Tank {
   fireBullets() {
     if (this.fire == "1") {
       // check of the tank is allowed to shoot
-      const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 2, "black", this);
+      const bullet = new Bullet(this.x, this.y, this.shotAngle, 10, 5, "black", this);
       bullets.push(bullet); // add the bullet to the bullets array
     }
   }
@@ -345,27 +261,8 @@ class Tank {
       }
       if(this.lives === 0){
         tanks.splice(tanks.indexOf(this), 1);
-        if(this.player = "1"){
-            winner = "1";
-        } else {
-            winner = "2";
-        }
         delete this;
-        gamestate = GAMESTATE.GAMEOVER;
       }
-    }
-  }
-
-  reset() {
-    this.lives = 3;
-    this.accX = 0;
-    this.accY = 0;
-    if(tanks[0] === this){
-      this.x = canvas.width * 0.25;
-      this.y = canvas.height / 2;
-    } else if(tanks[1] === this){
-      this.x = canvas.width * 0.75;
-      this.y = canvas.height / 2;
     }
   }
 }
@@ -445,56 +342,58 @@ class Bullet {
 }
 
 // open socket for players
-// const socket = io("/webpage");
+const socket = io("/webpage");
 
 // listen for player data
 // let I = 0
-// socket.on("data", (data) => { // event name 
-//   // update the players' tanks
-//   // console.log(I);
-//   // I++;
-//   // console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
+socket.on("data", (data) => { // event name 
+  // update the players' tanks
+  // console.log(I);
+  // I++;
+  // console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
 
-//   if (data.hasOwnProperty('x')){
-//     tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
-//   }
+  if (data.hasOwnProperty('x')){
+    tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
+  }
   
-//   if (data.hasOwnProperty('y')){
-//     tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
-//   }
+  if (data.hasOwnProperty('y')){
+    tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
+  }
   
-//   if (data.hasOwnProperty('Fire')){
-//     tanks[parseInt(data.Player)-1].fire = data.Fire;
-//   }
+  if (data.hasOwnProperty('Fire')){
+    tanks[parseInt(data.Player)-1].fire = data.Fire;
+  }
     
-// });
+});
 
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
+
+//gameOver is a boolean to end the game
+let keepGoing = true;
+
 function gameLoop() {
-  // console.log(gamestate);
-  setTimeout(gameLoop, 0.5);
-  if(enterPressed){
-    start();
-  }
-  if(escPressed){
-    togglePause();
-  }
-  if(qPressed){
-    restart();
-  }
-  update();
-  drawState();
-  // let deltaTime = timestamp - lastTime;
-  // lastTime = timestamp;
-  // clear the canvas
-  
-  if(gamestate === GAMESTATE.RUNNING){
+  //checking conditions if the game is over (a tank has lost all it's lives)
+  tanks.forEach((tank) => {
+
+    if(tank.lives === 0) {
+      keepGoing = false;
+    }
+  });
+
+  if(keepGoing) {  
+    setTimeout(gameLoop, 0.5);
+
+    // let deltaTime = timestamp - lastTime;
+    // lastTime = timestamp;
+    // clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    forbiddenSpaces.forEach((space) => {
-      drawPoints(space[0], space[1], space[2], space[3]);
-    });
+
+    if(gamestate === GAMESTATE.RUNNING){
+      forbiddenSpaces.forEach((space) => {
+        drawPoints(space[0], space[1], space[2], space[3]);
+      });
 
     // update tanks
     tanks.forEach((tank) => {
@@ -502,85 +401,83 @@ function gameLoop() {
       tank.move();
       tank.checkHealth();
       tank.fireBullets();
-      // socket.emit("clientData", {Player: tank.player, Lives: tank.lives.toString()});
+      tank.draw();
+
+      if (tank.lives != tank.previousLives) {
+        livesSend = tank.lives.toString() + 'f';
+        socket.emit("clientData", {Player: tank.player, Lives: livesSend});
+        tank.previousLives = tank.lives;
+      }
     });
 
-    // update bullets
-    bullets.forEach((bullet) => {
-      bullet.draw();
-      bullet.move();
-    });
-    //more keys control stuff
-    
-    if(spacePressed){
-      tanks[0].fire = '1';
-    }
-    else{
-      tanks[0].fire = '0';
-    }
-    if(rightPressed) {
-      tanks[0].accX = 1;
-    }
-    else if(leftPressed) {
-      tanks[0].accX = -1;
-    }
-    else{
-      tanks[0].accX = 0;
+      // update bullets
+      bullets.forEach((bullet) => {
+        bullet.draw();
+        bullet.move();
+      });   
+
+   
+    // // request the next frame
+    // requestAnimationFrame(gameLoop);
     }
 
-    if(upPressed) {
-      tanks[0].accY = -1;
-    }
-    else if(downPressed) {
-      tanks[0].accY = 1;
-    }
-    else{
-      tanks[0].accY = 0;
-    }
+  } else {
+      console.log("end");
+      //this is to happen if a tank has died
+      let winner = "";
+      let looser = "";
+
+      tanks.forEach((tank) => {
+        if(tank.health === 0) {
+          looser = tank.player;
+        } else {
+          winner = tank.player;
+        }
+        socket.emit("game over", { player1: String(winner), player2: String(looser), winner: true });
+        
+      });
+
   }
-  // // request the next frame
-  // requestAnimationFrame(gameLoop);
 }
+
+
+
+//yomnas functions:
+
+function togglePause() {
+    if (gamestate === GAMESTATE.PAUSED) {
+      gamestate = GAMESTATE.RUNNING;
+    } else {
+      gamestate = GAMESTATE.PAUSED;
+    }
+}
+
+// initialize the game
+const GAMESTATE = {
+    PAUSED: 0,
+    RUNNING: 1,
+    MENU: 2,
+    GAMEOVER: 3
+};
 
 function start(){
-    if  (gamestate !== GAMESTATE.MENU) return;
-    if(tanks.length !== 2){
-        for(let i=0; i<tanks.length; i++){
-            tanks.splice(i, 1);
-        }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
-    } else {
-        for(let i = 0; i < tanks.length; i++){
-            tanks[i].reset(); 
-        }
-    }
-    // ADD LEVEL STUFF ONCE DONE
-    gamestate = GAMESTATE.RUNNING;
-}
+  if  (gamestate !== GAMESTATE.MENU) return;
 
-function restart(){
-    if(tanks.length !== 2){
-        for(let i=0; i<tanks.length; i++){
-            tanks.splice(i, 1);
-        }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
-    } else {
-        for(let i = 0; i < tanks.length; i++){
-            tanks[i].reset(); 
-        }
-    }
-    // ADD LEVEL STUFF ONCE DONE
-    gamestate = GAMESTATE.MENU;
+  // ADD LEVEL STUFF ONCE DONE
+  
+  for(let i = 0; i < tanks.length; i++){
+    tanks[i].reset(); //TODO: ADD RESET FUNCTION
+  }
+  
+  gamestate = GAMESTATE.RUNNING;
 }
 
 function update(){
-  /* for(let i = 0; i < tanks.length; i++){
+  for(let i = 0; i < tanks.length; i++){
     if(tanks[i].lives === 0){
       gamestate = GAMESTATE.GAMEOVER;
     }
-  } */
+  }
 
   if  (
         gamestate === GAMESTATE.PAUSED ||
@@ -624,46 +521,37 @@ function drawState(){
     ctx.font = "30px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
-    ctx.fillText("Player " + winner + " Wins", canvas.width / 2, canvas.height / 2);
+    if((tanks[0].lives === 0) && (tanks[1].lives !== 0)){
+      ctx.fillText("Player " + tanks[1].player + " Wins", canvas.width / 2, canvas.height / 2);
+    } else if ((tanks[1].lives === 0) && (tanks[0].lives !== 0)) {
+      ctx.fillText("Player " + tanks[0].player + " Wins", canvas.width / 2, canvas.height / 2);
+    }
     
-    //added "game ending" server
-    let winner = "";
-      let looser = "";
-
-      tanks.forEach((tank) => {
-        if(tank.health === 0) {
-          looser = tank.player;
-        } else {
-          winner = tank.player;
-        }
-        
-      });
-      socket.emit("game over", { player1: String(winner), player2: String(looser), winner: true });
-      socket.on("history", (data) => {
-        console.log(data);
-      });
   }
 }
 
-function togglePause() {
-    if (gamestate === GAMESTATE.PAUSED) {
-      gamestate = GAMESTATE.RUNNING;
-    } else {
-      gamestate = GAMESTATE.PAUSED;
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // initialize the game
-const GAMESTATE = {
-    PAUSED: 0,
-    RUNNING: 1,
-    MENU: 2,
-    GAMEOVER: 3
-};
-
 function init() {
-  gamestate = GAMESTATE.MENU;
+
+  gamestate = GAMESTATE.RUNNING;
   document.body.appendChild(canvas);
+
   // create tanks
   // initialise tank positions to center and facing each other
   tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
