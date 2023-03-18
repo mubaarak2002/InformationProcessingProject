@@ -109,6 +109,8 @@ if(window.innerHeight < window.innerWidth){
     canvas.height = canvas.width * 0.75;
 }
 
+let scalar = 0.001 * canvas.height;
+
 //inside this should be rectangles with 4 points inside it to define a rectangle where you cannot
 //enter, thus you can make them as big or as little as you want. but if you make them too small,
 //and dx/dy is bigger than the width, you could jump through a square
@@ -244,7 +246,7 @@ class Tank {
     this.angle = 0;     //angle of movement
     this.shotAngle = 0; //angle of shooting
     this.magnitude = 0;
-    this.speed = 2;
+    this.speed = 2*scalar;
     this.health = 100;
     this.player = player;
     this.username = username;
@@ -500,18 +502,16 @@ class Bullet {
     walls.forEach((wall) => {
       //this is slightly funky, since collision detection is being called after the tank has moved
       //so we're calling it on the current x, rather than x + dx (detect a collision after it has already occurred)
-        if (this.x + this.radius > wall.x &&
+      if (this.x + this.radius > wall.x && 
             this.x - this.radius < (wall.x + wall.width) &&
             this.y + this.radius > wall.y &&
             this.y - this.radius < (wall.y + wall.height)) {
+
               this.x -= this.dx;
               this.y -= this.dy;
               //to calc angle of bullet reflection, find which direction bullet is coming into wall
-              let dx = (wall.x + wall.width/2) - this.x;
-              let dy = (wall.y + wall.height/2) - this.y;
-              let angle = Math.atan2(dy, dx);
-              //dx and dy not to be confused with the parameters we use for movement: this.dx and this.dy
-              if((1.75*Math.PI < this.angle && this.angle < 2.25*Math.PI) || (2.75*Math.PI < this.angle && this.angle < 3.25*Math.PI)){
+
+              if(this.x >= wall.x + wall.width || this.x <= wall.x){
                 //console.log("bounce dx");
                 this.dx = -this.dx;
                 this.dirChange++;
@@ -666,32 +666,32 @@ function gameLoop() {
     //more keys control stuff
   }
     
-//     if(spacePressed){
-//       tanks[0].fire = '1';
-//     }
-//     else{
-//       tanks[0].fire = '0';
-//     }
-//     if(rightPressed) {
-//       tanks[0].accX = 1;
-//     }
-//     else if(leftPressed) {
-//       tanks[0].accX = -1;
-//     }
-//     else{
-//       tanks[0].accX = 0;
-//     }
+    if(spacePressed){
+      tanks[0].fire = '1';
+    }
+    else{
+      tanks[0].fire = '0';
+    }
+    if(rightPressed) {
+      tanks[0].accX = 1;
+    }
+    else if(leftPressed) {
+      tanks[0].accX = -1;
+    }
+    else{
+      tanks[0].accX = 0;
+    }
 
-//     if(upPressed) {
-//       tanks[0].accY = -1;
-//     }
-//     else if(downPressed) {
-//       tanks[0].accY = 1;
-//     }
-//     else{
-//       tanks[0].accY = 0;
-//     }
-//   }
+    if(upPressed) {
+      tanks[0].accY = -1;
+    }
+    else if(downPressed) {
+      tanks[0].accY = 1;
+    }
+    else{
+      tanks[0].accY = 0;
+    }
+  
   // // request the next frame
   // requestAnimationFrame(gameLoop);
 }
@@ -746,12 +746,15 @@ function update(){
 }
 
 function drawState(){
+
+  let fontSize = 30*scalar;
+
   if (gamestate === GAMESTATE.PAUSED) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.5";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Paused", canvas.width / 2, canvas.height / 2);
@@ -762,7 +765,7 @@ function drawState(){
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(
@@ -779,7 +782,7 @@ function drawState(){
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(
@@ -794,7 +797,7 @@ function drawState(){
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(
@@ -813,7 +816,7 @@ function drawState(){
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Player " + winner.toString() + " Wins", canvas.width / 2, canvas.height / 2);
@@ -865,7 +868,8 @@ const GAMESTATE = {
 };
 
 function init() {
-  gamestate = GAMESTATE.TWOPLAYERWAITING;
+  //gamestate = GAMESTATE.TWOPLAYERWAITING;
+  gamestate = GAMESTATE.MENU;
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
