@@ -40,11 +40,11 @@ function getHistory(player1, player2) {
     //query the rivalries table
     function get_info(player1, player2, callback){
         console.log("2: ", player1, " ", player2);
-        var sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '0', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;
+        let sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '0', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins;" ;
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
-        let sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1 + "' AND player2ID = '" + player2 + "';";
+        sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1 + "' AND player2ID = '" + player2 + "';";
         console.log(sql);
         db.query(sql, function(err, results){
             if (err){ 
@@ -75,6 +75,7 @@ function getHistory(player1, player2) {
             data = {"History": P2wins + " - " + P1wins};
         }
     });
+    console.log(data);
     return data;
 }
 
@@ -293,15 +294,16 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         }
         //send rivalry data to socket
         var P1wins;
-        var P2wins;  
+        var P2wins;
         get_info(data.player1, data.player2, function(result){
             console.log("player 1 wins: " + P1wins);
             console.log("player 2 wins: " + P2wins);
+            let json;
             if(data.player1 == playerNames[0]){
-                let json = {"history": P1wins + " - " + P2wins};
+                json = {"history": P1wins + " - " + P2wins};
             }
             else{
-                let json = {"history": P2wins + " - " + P1wins};
+                json = {"history": P2wins + " - " + P1wins};
             }
             socket.emit("history", json);
         });

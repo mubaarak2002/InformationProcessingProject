@@ -51,6 +51,8 @@ let playerWaiting = 2;
 let maxLives = 5;
 let history = "";
 
+let usernames = [];
+
 // function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
 //   const canvas = document.getElementById("canvas");
 //   const ctx = canvas.getContext("2d");
@@ -628,7 +630,8 @@ socket.on("history", (data) => {
 socket.on("connection", (data) => {
   console.log(data);
   if((playerWaiting !== 0) && (data.hasOwnProperty('Player')) && (data.hasOwnProperty('Username'))){
-    tanks[parseInt(data.Player)-1].username = data.Username;
+    // tanks[parseInt(data.Player)-1].username = data.Username;
+    usernames[parseInt(data.Player)-1] = data.Username;
     playerWaiting -= 1;
     if(playerWaiting === 1){
       gamestate = GAMESTATE.ONEPLAYERWAITING;
@@ -789,8 +792,8 @@ function start(){
             tanks.splice(i, 1);
         }
         //added the players in the current session to the tanks
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", usernames[0], "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", uesrnames[1], "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
@@ -806,8 +809,8 @@ function restart(){
         for(let i=0; i<tanks.length; i++){
             tanks.splice(i, 1);
         }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", usernames[0], "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", usernames[1], "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
