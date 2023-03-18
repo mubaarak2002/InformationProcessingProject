@@ -53,7 +53,7 @@ function getHistory(player1, player2) {
     //send rivalry data to socket
     var P1wins;
     var P2wins;  
-    get_info(data.player1, data.player2, function(result){
+    get_info(player1, player2, function(result){
         console.log("player 1 wins: " + P1wins);
         console.log("player 2 wins: " + P2wins);
         if(data.player1 == playerNames[0]){
