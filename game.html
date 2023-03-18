@@ -47,8 +47,9 @@ let enterPressed = false;
 let qPressed = false;
 let winner = 0;
 let gameOverSent = 0;
-
+let playerWaiting = 2;
 let maxLives = 5;
+let history = "";
 
 // function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
 //   const canvas = document.getElementById("canvas");
@@ -617,7 +618,24 @@ function wallsDiag(x, y, length, rotate){
 const socket = io("/webpage");
 
 socket.on("history", (data) => {
+  if(data.hasOwnProperty('History')){
+    gamestate = GAMESTATE.HISTORY;
+    history = data.History;
+  }
   console.log(data);
+});
+
+socket.on("connection", (data) => {
+  console.log(data);
+  if((playerWaiting !== 0) && (data.hasOwnProperty('Player')) && (data.hasOwnProperty('Username'))){
+    tanks[parseInt(data.Player)-1].username = data.Username;
+    playerWaiting -= 1;
+    if(playerWaiting === 1){
+      gamestate = GAMESTATE.ONEPLAYERWAITING;
+    } else if(playerWaiting === 0){
+      gamestate = GAMESTATE.MENU;
+    }
+  }
 });
 
 // // listen for player data
@@ -680,13 +698,13 @@ function gameLoop() {
   setTimeout(gameLoop, 0.5);
   //console.log(tanks);
   
-  if(current_session_players.length === 0) {
-    gamestate = GAMESTATE.TWOPLAYERWAITING;
-  } else if (current_session_players.length === 1) {
-    gamestate = GAMESTATE.ONEPLAYERWAITING;
-  } else if (current_session_players.length === 2 && gamestate === GAMESTATE.ONEPLAYERWAITING) {
-    gamestate = GAMESTATE.MENU;
-  }
+  // if(current_session_players.length === 0) {
+  //   gamestate = GAMESTATE.TWOPLAYERWAITING;
+  // } else if (current_session_players.length === 1) {
+  //   gamestate = GAMESTATE.ONEPLAYERWAITING;
+  // } else if (current_session_players.length === 2 && gamestate === GAMESTATE.ONEPLAYERWAITING) {
+  //   gamestate = GAMESTATE.MENU;
+  // }
 
   if(enterPressed && gamestate === GAMESTATE.MENU){
     start();
@@ -771,8 +789,8 @@ function start(){
             tanks.splice(i, 1);
         }
         //added the players in the current session to the tanks
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, current_session_players[0], "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, current_session_players[1], "2", "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
@@ -861,6 +879,21 @@ function drawState(){
     );
   }
 
+  if (gamestate === GAMESTATE.HISTORY) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = (fontSize|0) + "px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        history,
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
   if (gamestate === GAMESTATE.ONEPLAYERWAITING) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.1";
@@ -933,12 +966,13 @@ const GAMESTATE = {
     MENU: 2,
     GAMEOVER: 3,
     TWOPLAYERWAITING: 4,
-    ONEPLAYERWAITING: 5
+    ONEPLAYERWAITING: 5,
+    HISTORY: 6
 };
 
 function init() {
-  //gamestate = GAMESTATE.TWOPLAYERWAITING;
-  gamestate = GAMESTATE.MENU;
+  gamestate = GAMESTATE.TWOPLAYERWAITING;
+  // gamestate = GAMESTATE.MENU;
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
