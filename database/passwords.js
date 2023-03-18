@@ -18,7 +18,7 @@ db.connect((err) => {
 
 var playerID = "qwerty";
 var password = "id";
-var sql = "INSERT INTO players VALUES ('" + playerID + "', '1', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
+var sql = "INSERT INTO players VALUES ('" + playerID + "', '0', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
@@ -48,7 +48,7 @@ get_info(playerID, password, function(result){
     console.log(match)
 });
 
-var sql = "SELECT * FROM players WHERE playerID = 'qwerty'";
+var sql = "SELECT * FROM players";
 db.query(sql, (err, result) => {
     if(err) throw err;
     console.log(result);

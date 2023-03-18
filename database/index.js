@@ -31,7 +31,14 @@ db.connect((err) => {
 });
 
 //displays all columns
-var sql = "SELECT * FROM players";
+var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = 't1y' AND player2ID = 'jj7';";
+db.query(sql, (err, result) => {
+    if(err) throw err;
+    console.log(result);
+});
+
+//displays all columns
+var sql = "SELECT * FROM rivalries";
 db.query(sql, (err, result) => {
     if(err) throw err;
     console.log(result);

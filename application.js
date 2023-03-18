@@ -31,27 +31,26 @@ let webId = null;
 
 
 function getHistory(player1, player2) {
-    console.log("1: ", player1, " ", player2);
     //query database for match history of players
     //make sure to rearrange to player1, player2 - should not return from here alphabetically
 
     //format data as a json object
     //data = {"History": history} where history is a string of form 1 - 0
     //query the rivalries table
-    function get_info(player1, player2, callback){
-        console.log("2: ", player1, " ", player2);
-        let sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1 + "' AND player2ID = '" + player2 + "';";
-        console.log(sql);
+    function get_info(player1ID, player2ID, callback){
+        var sql = "INSERT INTO rivalries VALUES ('" + player1ID + "', '" + player2ID + "', '0', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
+
+        var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
         db.query(sql, function(err, results){
             if (err){ 
               throw err;
             }
-            console.log(results);
             results.forEach((row) => {
                 P1wins = row.player1wins;
-                P2wins = row.player2wins;
-
-                console.log("AAAAAAAA  ", P1wins, " ", P2wins);
+                P2wins = row.player2wins;  
             });
             return callback(results.player1wins);
     })
@@ -61,22 +60,20 @@ function getHistory(player1, player2) {
     let P2wins;
     let data;  
     get_info(player1, player2, function(result){
-        console.log("3: ", player1, " ", player2);
         console.log("player 1 wins: " + P1wins);
         console.log("player 2 wins: " + P2wins);
         if(player1 == playerNames[0]){
-            data = {"History": P1wins + " - " + P2wins};
+            let data = {"History": P1wins + " - " + P2wins};
         }
         else{
-            data = {"History": P2wins + " - " + P1wins};
+            let data = {"History": P2wins + " - " + P1wins};
         }
     });
     return data;
 }
 
 io.of("/client").on('connection', function (socket) {
-    let loginFailed = 0;
-    console.log("socket connection");
+    // console.log(socket.id);
     let playerId;
     
     //added connection based code
@@ -95,17 +92,13 @@ io.of("/client").on('connection', function (socket) {
             json = {"verified": "0"};
             socket.emit("clientData", json);
             socket.disconnect();
-            loginFailed = 1;
         }
-        if(clientIDs.length >= 2 && !loginFailed) {
+        if(clientIDs.length >= 2) {
             console.log("Maximum players already reached");
             json = {"verified": "0"};
             socket.emit("clientData", json);
             socket.disconnect();
-            loginFailed = 1;
         }
-
-        // let resultGot = false;
 
         if(!databaseConnected) {
             db.connect((err) => {
@@ -114,9 +107,8 @@ io.of("/client").on('connection', function (socket) {
             });
             databaseConnected = 1;
         }
-
         //inserts new players into table with username and password, doesn't change existing players
-        let sql = "INSERT INTO players VALUES ('" + data.Username + "', '0', '0', '" + data.Password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
+        var sql = "INSERT INTO players VALUES ('" + playerID + "', '0', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
@@ -125,81 +117,62 @@ io.of("/client").on('connection', function (socket) {
         //query for if they are in DB, if yes check password if not make new entry
         //make this set loggedIn to 1 if login successful, 0 if not please
 
-        let loggedIn;
-        let PCheck;
-        // function get_info(playerID, password, callback){
-        sql = "SELECT playerID, password FROM players WHERE playerID = '" + data.Username + "';";
-        if (!loginFailed) {
+        var loggedIn
+        var PCheck
+        function get_info(playerID, password, callback){
+            var sql = "SELECT playerID, password FROM players WHERE playerID = '" + playerID + "';";
             db.query(sql, function(err, results){
                 if (err){ 
-                    throw err;
+                  throw err;
                 }
                 results.forEach((row) => {
                     PCheck = row.password;  
                 });
-                if(data.Password == PCheck){
+                if(password == PCheck){
                     loggedIn = true;
-                    assignUsers();
                 }
                 else{
                     loggedIn = false;
                 }
-                console.log("logincheck");
-                // resultGot = true;
-                // return callback(loggedIn);
-            });
+                return callback(loggedIn);
+        })
         }
-
-        function assignUsers() {
-            if (!loggedIn && !loginFailed) {
-                console.log("Password for ", data.Username, " incorrect");
-                json = {"verified": "0"};
-                socket.emit("clientData", json);
-                socket.disconnect();
-                loginFailed = 1;
-            } else if (!loginFailed) {
-                console.log("Login successful");
-                if (clientIDs[0] == null){
-                    clientIDs[0] = socket.id;
-                    playerId = 1;
-                    playerNames[playerId-1] = data.Username;
-                } else {
-                    clientIDs[1] = socket.id;
-                    playerId = 2;
-                    playerNames[playerId-1] = data.Username;
-
-                    let history;
-                    if(playerNames[1] > playerNames[0]){
-                        history = getHistory(playerNames[1], playerNames[0]);
-                    } else {
-                        history = getHistory(playerNames[0], playerNames[1]);
-                    }                
-
-                    clientIDs.forEach(clientID => {
-                        socket.to(clientID).emit("clientData", history);
-                    });
-                }
-                console.log("Player ", playerId, ": ", playerNames[playerId-1], " connected."); //reveals client ip
-
-                json = {"verified": "1"};
-                socket.emit("clientData", json);
-                json = {"Player": playerId,
-                        "Username": playerNames[playerId-1]};
-                io.of("/webpage").to(webId).emit("connection", json);
-            }
-        }
-
-        // }
         
-        // get_info(data.Username, data.Password, function(result){
-        //     console.log(loggedIn);
-        // });
+        get_info(data.Username, data.Password, function(result){
+            console.log(loggedIn)
+        });
+        
+        if (!loggedIn) {
+            console.log("Password for ", data.Username, " incorrect");
+            json = {"verified": "0"};
+            socket.emit("clientData", json);
+            socket.disconnect();
+        } else {
+            console.log("Login successful");
+            if (clientIDs[0] == null){
+                clientIDs[0] = socket.id;
+                playerId = 1;
+                playerNames[playerId-1] = data.Username;
+            } else {
+                clientIDs[1] = socket.id;
+                playerId = 2;
+                playerNames[playerId-1] = data.Username;
+                let history = getHistory(playerNames[0], playerNames[1]);
+                clientIDs.forEach(clientID => {
+                    socket.to(clientID).emit("clientData", history);
+                });
+            }
+            console.log("Player ", playerId, ": ", playerNames[playerId-1], " connected."); //reveals client ip
+
+            json = {"verified": "1"};
+            socket.emit("clientData", json);
+        }
+
+        json = {"Player": playerId,
+                "Username": playerNames[playerId-1]};
+        io.of("/webpage").to(webId).emit("connection", json);
     });
 
-    socket.on("terminate", function () {
-        console.log(playerId, " has disconnected");
-        socket.disconnect();
-    })
 
     socket.on("data", function (data) {
         data["Player"] = playerId;
@@ -235,6 +208,11 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         clientIDs.forEach(clientID => {
             socket.to(clientID).emit("clientData", json);
         });
+    });
+
+    socket.on("History", function() {
+        let history = getHistory(playerNames[0], playerNames[1]);
+        socket.emit("History", history);
     });
 
     socket.on("game over", function (data) {
@@ -290,7 +268,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         //send rivalry data to socket
         var P1wins;
         var P2wins;  
-        get_info(data.player1, data.player2, function(result){
+         get_info(data.player1, data.player2, function(result){
             console.log("player 1 wins: " + P1wins);
             console.log("player 2 wins: " + P2wins);
             if(data.player1 == playerNames[0]){
@@ -300,16 +278,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
                 let json = {"history": P2wins + " - " + P1wins};
             }
             socket.emit("history", json);
-        });
+         });
 
          //closes connection to the database
         db.end((err) => {
             console.log("connection ended");
         });
-
-        
-        let history = getHistory(playerNames[0], playerNames[1]);
-        socket.emit("History", history);
     });
 
 	socket.on("disconnect", function () {
