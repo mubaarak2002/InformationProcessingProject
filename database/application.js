@@ -95,6 +95,8 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     var win = 0;
     var player1 = "JJ";
     var player2 = "Rory";
+    var p1password = "ptest1";
+    var p2password = "ptest2";
     
     if (win){
         var winner = player1;
@@ -105,17 +107,16 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         var loser = player1;
     }
     //update winner
-    var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
-    var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
+    var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner + "';";
     db.query(sql, (err, result) => {
         if(err) throw err;
     });
     //update loser
-    var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
-    var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
+    var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser + "';";
     db.query(sql, (err, result) => {
         if(err) throw err;
     });
+    
     //update rivalries
     if (win){
         var sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '1', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;
@@ -161,29 +162,24 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.on("clientData", function (data) {
         let player = data.Player;
         delete data.Player;
-        // console.log(data);
+        console.log(data);
         io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
-        // console.log(player, " send lives to ", clientIDs[player - 1]);
+        console.log(player, " send lives to ", clientIDs[player - 1]);
+    });
+
+    socket.on("Ready", function() {
+        let json = {"ready": "1"};
+        clientIDs.forEach(clientID => {
+            socket.to(clientID).emit("clientData", json);
+        });
+    });
+
+    socket.on("History", function() {
+        let history = getHistory(playerNames[0], playerNames[1]);
+        socket.emit("History", history);
     });
 
     socket.on("game over", function (data) {
-        const mysql = require("mysql");
-
-        const db = mysql.createConnection({
-        host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
-        port: "3306",
-        user: "admin",
-        password: "password",
-        database: "my_db",
-        });
-
-        db.connect((err) => {
-            if(err){
-              console.log(err.message);
-              return;
-            }
-            console.log("Database connected")
-        });
 
         // add to database the winner and loser data
         // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
