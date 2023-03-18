@@ -91,7 +91,7 @@ io.of("/client").on('connection', function (socket) {
                 playerNames[playerId-1] = data.Username;
                 let history = getHistory(playerNames[0], playerNames[1]);
                 clientIDs.forEach(clientID => {
-                    socket.to(clientID).emit("History", history);
+                    socket.to(clientID).emit("clientData", history);
                 });
             }
             console.log("Player ", playerId, ": ", playerNames[playerId-1], " connected."); //reveals client ip
@@ -136,8 +136,8 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     });
 
     socket.on("Ready", function() {
+        let json = {"ready": "1"};
         clientIDs.forEach(clientID => {
-            let json = {"ready": "1"};
             socket.to(clientID).emit("clientData", json);
         });
     });
