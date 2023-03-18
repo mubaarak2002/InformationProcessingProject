@@ -109,6 +109,8 @@ if(window.innerHeight < window.innerWidth){
     canvas.height = canvas.width * 0.75;
 }
 
+let scalar = 0.001 * canvas.height;
+
 //inside this should be rectangles with 4 points inside it to define a rectangle where you cannot
 //enter, thus you can make them as big or as little as you want. but if you make them too small,
 //and dx/dy is bigger than the width, you could jump through a square
@@ -244,7 +246,7 @@ class Tank {
     this.angle = 0;     //angle of movement
     this.shotAngle = 0; //angle of shooting
     this.magnitude = 0;
-    this.speed = 2;
+    this.speed = 2*scalar;
     this.health = 100;
     this.player = player;
     this.username = username;
@@ -500,18 +502,16 @@ class Bullet {
     walls.forEach((wall) => {
       //this is slightly funky, since collision detection is being called after the tank has moved
       //so we're calling it on the current x, rather than x + dx (detect a collision after it has already occurred)
-        if (this.x + this.radius > wall.x &&
+      if (this.x + this.radius > wall.x && 
             this.x - this.radius < (wall.x + wall.width) &&
             this.y + this.radius > wall.y &&
             this.y - this.radius < (wall.y + wall.height)) {
+
               this.x -= this.dx;
               this.y -= this.dy;
               //to calc angle of bullet reflection, find which direction bullet is coming into wall
-              let dx = (wall.x + wall.width/2) - this.x;
-              let dy = (wall.y + wall.height/2) - this.y;
-              let angle = Math.atan2(dy, dx);
-              //dx and dy not to be confused with the parameters we use for movement: this.dx and this.dy
-              if((1.75*Math.PI < this.angle && this.angle < 2.25*Math.PI) || (2.75*Math.PI < this.angle && this.angle < 3.25*Math.PI)){
+
+              if(this.x >= wall.x + wall.width || this.x <= wall.x){
                 //console.log("bounce dx");
                 this.dx = -this.dx;
                 this.dirChange++;
@@ -531,19 +531,51 @@ class Bullet {
 }
 
 //builds walls in an L shape
-function wallsL(x, y, breadth, length, angle, reverse){
-                //x/y give location,
-                //width/height give shape dimensions (in blocks),
-                //angle rotates shape
-                //flipV and flipH flip vertically and horizontally
-      for(let i = 0; i <= breadth; i++){
-          walls.push(new Wall(x + i*scalar*40, y));
+function wallsL(x, y, breadth, length, flipV, flipH){
+  //x/y give location, 
+  //width/height give shape dimensions (in blocks), 
+  //angle rotates shape
+  //flipV and flipH flip vertically and horizontally
+  if(!flipH){
+      if(!flipV){ //dont flip vertically or horizontally
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x + i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x + breadth*scalar*40, y - j*scalar*40));
+        }
       }
-      for(let j = 0; j <= length; j++){
-          walls.push(new Wall(x + breadth*scalar*40, y + j*scalar*40));
+      else{ //flip vertically only
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x + i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x + breadth*scalar*40, y + j*scalar*40));
+        }
+
       }
+  }
+  else{
+    if(!flipV){ //flip horizontally only
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x - i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x - breadth*scalar*40, y + j*scalar*40));
+        }
+      }
+      else{ //flip vertically and horizontally
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x - i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x - breadth*scalar*40, y - j*scalar*40));
+        }
+      }
+  }
 }
 
+//builds a line of walls
 function wallsLine(x, y, length, rotate){
   //if rotate = true, rotate 90 degrees
   if(!rotate){
@@ -554,6 +586,29 @@ function wallsLine(x, y, length, rotate){
   else if(rotate){
     for(let i = 0; i <= length; i++){
             walls.push(new Wall(x, y + i*scalar*40));
+    }
+  }
+}
+
+//builds a rectangle of walls
+function wallsRect(x, y, length, height){
+  for(let i = 0; i <= height; i++){
+      for(let j = 0; j <= length; j++){
+          walls.push(new Wall(x + j*scalar*40, y + i*scalar*40));
+      }
+  }
+}
+
+//draws a diagonal line
+function wallsDiag(x, y, length, rotate){
+  if(!rotate){
+    for(let i = 0; i <= length; i++){
+            walls.push(new Wall(x + i*scalar*40, y + i*scalar*40));
+    }
+  }
+  else if(rotate){
+    for(let i = 0; i <= length; i++){
+            walls.push(new Wall(x + i*scalar*40, y - i*scalar*40));
     }
   }
 }
@@ -613,14 +668,27 @@ socket.on("data", (data) => { // event name
     
 });
 
+//these are the players in the current session, so there should only
+//be two entries in this array
+let current_session_players = [];
+
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
 function gameLoop() {
   // console.log(gamestate);
   setTimeout(gameLoop, 0.5);
-  console.log("running");
-  if(enterPressed){
+  //console.log(tanks);
+  
+  if(current_session_players.length === 0) {
+    gamestate = GAMESTATE.TWOPLAYERWAITING;
+  } else if (current_session_players.length === 1) {
+    gamestate = GAMESTATE.ONEPLAYERWAITING;
+  } else if (current_session_players.length === 2 && gamestate === GAMESTATE.ONEPLAYERWAITING) {
+    gamestate = GAMESTATE.MENU;
+  }
+
+  if(enterPressed && gamestate === GAMESTATE.MENU){
     start();
   }
   if(escPressed){
@@ -664,34 +732,34 @@ function gameLoop() {
       bullet.move();
     });
     //more keys control stuff
-  }
-    
-//     if(spacePressed){
-//       tanks[0].fire = '1';
-//     }
-//     else{
-//       tanks[0].fire = '0';
-//     }
-//     if(rightPressed) {
-//       tanks[0].accX = 1;
-//     }
-//     else if(leftPressed) {
-//       tanks[0].accX = -1;
-//     }
-//     else{
-//       tanks[0].accX = 0;
-//     }
 
-//     if(upPressed) {
-//       tanks[0].accY = -1;
-//     }
-//     else if(downPressed) {
-//       tanks[0].accY = 1;
-//     }
-//     else{
-//       tanks[0].accY = 0;
-//     }
-//   }
+    
+    if(spacePressed){
+      tanks[0].fire = '1';
+    }
+    else{
+      tanks[0].fire = '0';
+    }
+    if(rightPressed) {
+      tanks[0].accX = 1;
+    }
+    else if(leftPressed) {
+      tanks[0].accX = -1;
+    }
+    else{
+      tanks[0].accX = 0;
+    }
+
+    if(upPressed) {
+      tanks[0].accY = -1;
+    }
+    else if(downPressed) {
+      tanks[0].accY = 1;
+    }
+    else{
+      tanks[0].accY = 0;
+    }
+  }
   // // request the next frame
   // requestAnimationFrame(gameLoop);
 }
@@ -702,8 +770,9 @@ function start(){
         for(let i=0; i<tanks.length; i++){
             tanks.splice(i, 1);
         }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+        //added the players in the current session to the tanks
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, current_session_players[0], "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, current_session_players[1], "2", "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
@@ -746,12 +815,15 @@ function update(){
 }
 
 function drawState(){
+
+  let fontSize = 30*scalar;
+
   if (gamestate === GAMESTATE.PAUSED) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.5";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Paused", canvas.width / 2, canvas.height / 2);
@@ -762,7 +834,7 @@ function drawState(){
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText(
@@ -772,12 +844,48 @@ function drawState(){
     );
   }
 
+  //added the Gamestate for Waiting for __ players:
+
+  if (gamestate === GAMESTATE.TWOPLAYERWAITING) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = (fontSize|0) + "px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        "Waiting for Two Players",
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
+  if (gamestate === GAMESTATE.ONEPLAYERWAITING) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = (fontSize|0) + "px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        "Waiting for One Player",
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
+
+//END OF OMAR'S ADDITIONS (SUN 18 MARCH)
+
+
   if (gamestate === GAMESTATE.GAMEOVER) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.1";
     ctx.fill();
 
-    ctx.font = "30px Arial";
+    ctx.font = (fontSize|0) + "px Arial";
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Player " + winner.toString() + " Wins", canvas.width / 2, canvas.height / 2);
@@ -823,16 +931,23 @@ const GAMESTATE = {
     PAUSED: 0,
     RUNNING: 1,
     MENU: 2,
-    GAMEOVER: 3
+    GAMEOVER: 3,
+    TWOPLAYERWAITING: 4,
+    ONEPLAYERWAITING: 5
 };
 
 function init() {
+  //gamestate = GAMESTATE.TWOPLAYERWAITING;
   gamestate = GAMESTATE.MENU;
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
-//   tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+   //tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
 //   tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+  
+  //USE TO DEBUG STUFF:
+  //current_session_players[0] = "JJ"
+  //current_session_players[1] = "RORY"
 
   
 //   forbiddenSpaces.forEach((space) => {

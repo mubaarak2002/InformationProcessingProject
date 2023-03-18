@@ -11,7 +11,7 @@ server.listen(3000, () => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/gameScreens.html");
+  res.sendFile(__dirname + "/game.html");
 });
 
 let clientIDs = [];
@@ -19,6 +19,7 @@ let playerNames = [];
 let webId = null;
 
 io.of("/client").on('connection', function (socket) {
+    console.log(socket.id);
     let playerId;
     if (clientIDs[0] == null){
         clientIDs[0] = socket.id;
@@ -34,7 +35,7 @@ io.of("/client").on('connection', function (socket) {
     }
 
     
-    socket.on("init", function (data) {
+    socket.on("init", function (data) { //username checking
         // console.log("init ", data);
         
         if (!playerNames.includes(data.Username)) {
@@ -44,10 +45,15 @@ io.of("/client").on('connection', function (socket) {
 
 
     socket.on("data", function (data) {
-        console.log("data ", data);
+        // console.log("data ", data);
+        console.log("gotdatafrom: ", data.Username);
         data["Player"] = playerId;
         data["Username"] = playerNames[playerId-1];
+        // delete data["Fire"];
+        // delete data["y"];
         io.of("/webpage").to(webId).emit("data", data);
+        // let lives = {"Lives: ": '3'};
+        // socket.emit("clientData", lives);
     });
 
 	socket.on("disconnect", function () {
@@ -65,28 +71,115 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-    socket.on("lives", function (data) {
-        io.of("/client").to(clientIDs[data.Player]).emit("data", data);
+    const mysql = require("mysql");
+
+    const db = mysql.createConnection({
+    host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
+    port: "3306",
+    user: "admin",
+    password: "password",
+    database: "my_db",
+    });
+
+    db.connect((err) => {
+        if(err){
+          console.log(err.message);
+          return;
+        }
+        console.log("Database connected")
+    });
+
+    // add to database the winner and loser data
+    // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
+
+    var win = 0;
+    var player1 = "JJ";
+    var player2 = "Rory";
+    var p1password = "ptest1";
+    var p2password = "ptest2";
+    
+    if (win){
+        var winner = player1;
+        var loser = player2;
+    }
+    else if (win == 0){
+        var winner = player2;
+        var loser = player1;
+    }
+    //update winner
+    var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner + "';";
+    db.query(sql, (err, result) => {
+        if(err) throw err;
+    });
+    //update loser
+    var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser + "';";
+    db.query(sql, (err, result) => {
+        if(err) throw err;
+    });
+    
+    //update rivalries
+    if (win){
+        var sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '1', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
+    }
+    else{
+        var sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '0', '1') ON DUPLICATE KEY UPDATE player2wins = player2wins + 1;" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
+    }
+    //query the rivalries table
+    function get_info(player1ID, player2ID, callback){
+        var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
+        db.query(sql, function(err, results){
+            if (err){ 
+              throw err;
+            }
+            results.forEach((row) => {
+                P1wins = row.player1wins;
+                P2wins = row.player2wins;  
+            });
+            return callback(results.player1wins);
+    })
+    }
+    //send rivalry data to socket
+    var P1wins;
+    var P2wins;  
+     get_info(player1, player2, function(result){
+        console.log("player 1 wins: " + P1wins);
+        console.log("player 2 wins: " + P2wins);
+        let json = {"history": P1wins + " - " + P2wins};
+        socket.emit("history", json);
+     });
+
+     //closes connection to the database
+    db.end((err) => {
+        console.log("connection ended");
+    });
+
+    socket.on("clientData", function (data) {
+        let player = data.Player;
+        delete data.Player;
+        console.log(data);
+        io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
+        console.log(player, " send lives to ", clientIDs[player - 1]);
+    });
+
+    socket.on("Ready", function() {
+        let json = {"ready": "1"};
+        clientIDs.forEach(clientID => {
+            socket.to(clientID).emit("clientData", json);
+        });
+    });
+
+    socket.on("History", function() {
+        let history = getHistory(playerNames[0], playerNames[1]);
+        socket.emit("History", history);
     });
 
     socket.on("game over", function (data) {
-        const mysql = require("mysql");
-
-        const db = mysql.createConnection({
-        host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
-        port: "3306",
-        user: "admin",
-        password: "password",
-        database: "my_db",
-        });
-
-        db.connect((err) => {
-            if(err){
-              console.log(err.message);
-              return;
-            }
-            console.log("Database connected")
-        });
 
         // add to database the winner and loser data
         // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
@@ -100,14 +193,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
             var loser = data.player1;
         }
         //update winner
-        var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
-        var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
+        var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
         //update loser
-        var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
-        var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
+        var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });

@@ -43,6 +43,12 @@ io.of("/client").on('connection', function (socket) {
     // console.log(socket.id);
     let playerId;
     
+    //added connection based code
+    socket.on("connection", function (data) {
+        current_session_players.append(data.player - 1);
+    });
+
+
     socket.on("init", function (data) { //username checking
         // console.log("init ", data);
 
