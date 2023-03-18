@@ -16,6 +16,13 @@ db.connect((err) => {
     console.log("Database connected")
 });
 
+var playerID = "qwerty";
+var password = "id";
+var sql = "INSERT INTO players VALUES ('" + playerID + "', '1', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
+db.query(sql, (err, result) => {
+    if(err) throw err;
+});
+
 var match
 var PCheck
 function get_info(playerID, password, callback){
@@ -28,15 +35,23 @@ function get_info(playerID, password, callback){
             PCheck = row.password;  
         });
         if(password == PCheck){
-            return callback(1);
+            match = true;
         }
-        return callback(results.player1wins);
+        else{
+            match = false;
+        }
+        return callback(match);
 })
 }
-var playerID = "Omar";
-var password = "password";
-get_info(playerID, password, function(result){
 
+get_info(playerID, password, function(result){
+    console.log(match)
+});
+
+var sql = "SELECT * FROM players WHERE playerID = 'qwerty'";
+db.query(sql, (err, result) => {
+    if(err) throw err;
+    console.log(result);
 });
 
 //closes connection to the database

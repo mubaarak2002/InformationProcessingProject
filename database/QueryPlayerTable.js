@@ -44,16 +44,14 @@ db.query(sql, (err, result) => {
 
 //query for the winner, creates a new row if player has no record, adds 1 to wins
 var winner = "test1";
-var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
-var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
+var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner + "';";
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
 
 //query for the loser, creates a new row if player has no record, adds 1 to losses
 var loser = "test2";
-var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
-var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
+var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser + "';";
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
