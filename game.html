@@ -623,13 +623,13 @@ let lastTime = 0;
 function gameLoop() {
   // console.log(gamestate);
   setTimeout(gameLoop, 0.5);
-  console.log("running");
+  //console.log(tanks);
   
   if(current_session_players.length === 0) {
     gamestate = GAMESTATE.TWOPLAYERWAITING;
   } else if (current_session_players.length === 1) {
     gamestate = GAMESTATE.ONEPLAYERWAITING;
-  } else if (current_session_players.length === 2) {
+  } else if (current_session_players.length === 2 && gamestate === GAMESTATE.ONEPLAYERWAITING) {
     gamestate = GAMESTATE.MENU;
   }
 
@@ -887,8 +887,12 @@ function init() {
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
-//   tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+   //tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
 //   tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+  
+  //USE TO DEBUG STUFF:
+  current_session_players[0] = "JJ"
+  current_session_players[1] = "RORY"
 
   
 //   forbiddenSpaces.forEach((space) => {
