@@ -1,6 +1,17 @@
 const http = require('http');
 const express = require("express");
 const app = express();
+const mysql = require("mysql");
+
+const db = mysql.createConnection({
+    host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
+    port: "3306",
+    user: "admin",
+    password: "password",
+    database: "my_db",
+});
+
+let databaseConnected = 0;
 
 const server = http.createServer(app);
 
@@ -18,42 +29,87 @@ let clientIDs = [];
 let playerNames = [];
 let webId = null;
 
-io.of("/client").on('connection', function (socket) {
-    console.log(socket.id);
-    let playerId;
-    if (clientIDs[0] == null){
-        clientIDs[0] = socket.id;
-        playerId = 1;
-        console.log("Connection from player 1: " + socket.handshake.headers); //reveals client ip
-    } else if (clientIDs[1] == null) {
-        clientIDs[1] = socket.id;
-        playerId = 2;
-        console.log("Connection from player 2: " + socket.handshake.headers); //reveals client ip
-    } else {
-        console.log("Maximum players already reached");
-        socket.disconnect();
-    }
 
+function getHistory(player1, player2) {
+    //query database for match history of players
+    //make sure to rearrange to player1, player2 - should not return from here alphabetically
+
+    //format data as a json object
+    //data = {"History": history} where history is a string of form 1 - 0
+    return data;
+}
+
+io.of("/client").on('connection', function (socket) {
+    // console.log(socket.id);
+    let playerId;
     
     socket.on("init", function (data) { //username checking
         // console.log("init ", data);
-        
-        if (!playerNames.includes(data.Username)) {
-            playerNames[playerId-1] = data.Username;
+
+        let json;
+
+        if (playerNames.includes(data.Username)) {
+            console.log(data.Username, " already connected");
+            json = {"verified": "0"};
+            socket.emit("clientData", json);
+            socket.disconnect();
         }
+        if(clientIDs.length >= 2) {
+            console.log("Maximum players already reached");
+            json = {"verified": "0"};
+            socket.emit("clientData", json);
+            socket.disconnect();
+        }
+
+        if(!databaseConnected) {
+            db.connect((err) => {
+                if (err) throw err;
+                console.log("Database connected");
+            });
+            databaseConnected = 1;
+        }
+
+
+        //data.Username, data.Password
+        //query for if they are in DB, if yes check password if not make new entry
+        //make this set loggedIn to 1 if login successful, 0 if not please
+        
+        if (!loggedIn) {
+            console.log("Password for ", data.Username, " incorrect");
+            json = {"verified": "0"};
+            socket.emit("clientData", json);
+            socket.disconnect();
+        } else {
+            console.log("Login successful");
+            if (clientIDs[0] == null){
+                clientIDs[0] = socket.id;
+                playerId = 1;
+                playerNames[playerId-1] = data.Username;
+            } else {
+                clientIDs[1] = socket.id;
+                playerId = 2;
+                playerNames[playerId-1] = data.Username;
+                let history = getHistory(playerNames[0], playerNames[1]);
+                clientIDs.forEach(clientID => {
+                    socket.to(clientID).emit("History", history);
+                });
+            }
+            console.log("Player ", playerId, ": ", playerNames[playerId-1], " connected."); //reveals client ip
+
+            json = {"verified": "1"};
+            socket.emit("clientData", json);
+        }
+
+        json = {"Player": playerId,
+                "Username": playerNames[playerId-1]};
+        io.of("/webpage").to(webId).emit("connection", json);
     });
 
 
     socket.on("data", function (data) {
-        // console.log("data ", data);
-        console.log("gotdatafrom: ", data.Username);
         data["Player"] = playerId;
         data["Username"] = playerNames[playerId-1];
-        // delete data["Fire"];
-        // delete data["y"];
         io.of("/webpage").to(webId).emit("data", data);
-        // let lives = {"Lives: ": '3'};
-        // socket.emit("clientData", lives);
     });
 
 	socket.on("disconnect", function () {
@@ -74,29 +130,24 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.on("clientData", function (data) {
         let player = data.Player;
         delete data.Player;
-        // console.log(data);
+        console.log(data);
         io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
-        // console.log(player, " send lives to ", clientIDs[player - 1]);
+        console.log(player, " send lives to ", clientIDs[player - 1]);
+    });
+
+    socket.on("Ready", function() {
+        clientIDs.forEach(clientID => {
+            let json = {"ready": "1"};
+            socket.to(clientID).emit("clientData", json);
+        });
+    });
+
+    socket.on("History", function() {
+        let history = getHistory(playerNames[0], playerNames[1]);
+        socket.emit("History", history);
     });
 
     socket.on("game over", function (data) {
-        const mysql = require("mysql");
-
-        const db = mysql.createConnection({
-        host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
-        port: "3306",
-        user: "admin",
-        password: "password",
-        database: "my_db",
-        });
-
-        db.connect((err) => {
-            if(err){
-              console.log(err.message);
-              return;
-            }
-            console.log("Database connected")
-        });
 
         // add to database the winner and loser data
         // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)

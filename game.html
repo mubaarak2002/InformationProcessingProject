@@ -46,8 +46,9 @@ let escPressed = false;
 let enterPressed = false;
 let qPressed = false;
 let winner = 0;
+let gameOverSent = 0;
 
-let maxLives = 3;
+let maxLives = 5;
 
 // function drawPoints(topLeft, topRight, bottomLeft, bottomRight) {
 //   const canvas = document.getElementById("canvas");
@@ -563,6 +564,10 @@ function wallsL(x, y, breadth, length, angle, reverse){
 // // open socket for players
 const socket = io("/webpage");
 
+socket.on("history", (data) => {
+  console.log(data);
+});
+
 // // listen for player data
 // // let I = 0
 socket.on("data", (data) => { // event name 
@@ -617,6 +622,7 @@ let lastTime = 0;
 function gameLoop() {
   // console.log(gamestate);
   setTimeout(gameLoop, 0.5);
+  console.log("running");
   if(enterPressed){
     start();
   }
@@ -646,7 +652,7 @@ function gameLoop() {
         tank.fireBullets();
         // socket.emit("clientData", {Player: tank.player, Lives: tank.lives.toString()});
         if (tank.lives != tank.previousLives) {
-            livesSend = tank.lives.toString() + 'f';
+            livesSend = tank.lives.toString() + "f";
             socket.emit("clientData", {Player: tank.player, Lives: livesSend});
             tank.previousLives = tank.lives;
         }
@@ -778,25 +784,30 @@ function drawState(){
     ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Player " + winner.toString() + " Wins", canvas.width / 2, canvas.height / 2);
+
+
     let player1user = tanksUsername["player1user"];
     let player2user = tanksUsername["player2user"];
-    if(winner === 2 ){
-        tanksUsername["player1state"] = "loser";
-        tanksUsername["player2state"] = "winner";
-        if(tanksUsername["player2user"] > tanksUsername["player1user"]){
-            socket.emit("game over", {player1user: "Winner", player2user: "Loser"});
-        } else {
-            socket.emit("game over", {player2user: "Loser", player1user: "Winner"});
-        }
-        
-    } else {
-        tanksUsername["player2state"] = "loser";
-        tanksUsername["player1state"] = "winner";
-        if(tanksUsername["player2user"] > tanksUsername["player1user"]){
-            socket.emit("game over", {player1user: "Loser", player2user: "Winner"});
-        } else {
-            socket.emit("game over", {player2user: "Winner", player1user: "Loser"});
-        }
+    if(!gameOverSent) {
+      if(winner === 2 ){
+          tanksUsername["player1state"] = "loser";
+          tanksUsername["player2state"] = "winner";
+          if(tanksUsername["player2user"] > tanksUsername["player1user"]){
+              socket.emit("game over", {player1user: "Winner", player2user: "Loser"});
+          } else {
+              socket.emit("game over", {player2user: "Loser", player1user: "Winner"});
+          }
+          gameOverSent=1;
+      } else {
+          tanksUsername["player2state"] = "loser";
+          tanksUsername["player1state"] = "winner";
+          if(tanksUsername["player2user"] > tanksUsername["player1user"]){
+              socket.emit("game over", {player1user: "Loser", player2user: "Winner"});
+          } else {
+              socket.emit("game over", {player2user: "Winner", player1user: "Loser"});
+          }
+          gameOverSent=1;
+      }
     }
     
   }
