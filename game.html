@@ -531,19 +531,51 @@ class Bullet {
 }
 
 //builds walls in an L shape
-function wallsL(x, y, breadth, length, angle, reverse){
-                //x/y give location,
-                //width/height give shape dimensions (in blocks),
-                //angle rotates shape
-                //flipV and flipH flip vertically and horizontally
-      for(let i = 0; i <= breadth; i++){
-          walls.push(new Wall(x + i*scalar*40, y));
+function wallsL(x, y, breadth, length, flipV, flipH){
+  //x/y give location, 
+  //width/height give shape dimensions (in blocks), 
+  //angle rotates shape
+  //flipV and flipH flip vertically and horizontally
+  if(!flipH){
+      if(!flipV){ //dont flip vertically or horizontally
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x + i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x + breadth*scalar*40, y - j*scalar*40));
+        }
       }
-      for(let j = 0; j <= length; j++){
-          walls.push(new Wall(x + breadth*scalar*40, y + j*scalar*40));
+      else{ //flip vertically only
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x + i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x + breadth*scalar*40, y + j*scalar*40));
+        }
+
       }
+  }
+  else{
+    if(!flipV){ //flip horizontally only
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x - i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x - breadth*scalar*40, y + j*scalar*40));
+        }
+      }
+      else{ //flip vertically and horizontally
+        for(let i = 0; i <= breadth; i++){
+            walls.push(new Wall(x - i*scalar*40, y));
+        }
+        for(let j = 0; j <= length; j++){
+            walls.push(new Wall(x - breadth*scalar*40, y - j*scalar*40));
+        }
+      }
+  }
 }
 
+//builds a line of walls
 function wallsLine(x, y, length, rotate){
   //if rotate = true, rotate 90 degrees
   if(!rotate){
@@ -554,6 +586,29 @@ function wallsLine(x, y, length, rotate){
   else if(rotate){
     for(let i = 0; i <= length; i++){
             walls.push(new Wall(x, y + i*scalar*40));
+    }
+  }
+}
+
+//builds a rectangle of walls
+function wallsRect(x, y, length, height){
+  for(let i = 0; i <= height; i++){
+      for(let j = 0; j <= length; j++){
+          walls.push(new Wall(x + j*scalar*40, y + i*scalar*40));
+      }
+  }
+}
+
+//draws a diagonal line
+function wallsDiag(x, y, length, rotate){
+  if(!rotate){
+    for(let i = 0; i <= length; i++){
+            walls.push(new Wall(x + i*scalar*40, y + i*scalar*40));
+    }
+  }
+  else if(rotate){
+    for(let i = 0; i <= length; i++){
+            walls.push(new Wall(x + i*scalar*40, y - i*scalar*40));
     }
   }
 }
