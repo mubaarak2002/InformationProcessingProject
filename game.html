@@ -789,8 +789,8 @@ function start(){
             tanks.splice(i, 1);
         }
         //added the players in the current session to the tanks
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, current_session_players[0], "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, current_session_players[1], "2", "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
