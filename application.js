@@ -105,6 +105,11 @@ io.of("/client").on('connection', function (socket) {
         io.of("/webpage").to(webId).emit("connection", json);
     });
 
+    socket.on("terminate", function () {
+        console.log(playerId, " has disconnected");
+        socket.disconnect();
+    })
+
 
     socket.on("data", function (data) {
         data["Player"] = playerId;
