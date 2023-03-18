@@ -36,6 +36,34 @@ function getHistory(player1, player2) {
 
     //format data as a json object
     //data = {"History": history} where history is a string of form 1 - 0
+    //query the rivalries table
+    function get_info(player1ID, player2ID, callback){
+        var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
+        db.query(sql, function(err, results){
+            if (err){ 
+              throw err;
+            }
+            results.forEach((row) => {
+                P1wins = row.player1wins;
+                P2wins = row.player2wins;  
+            });
+            return callback(results.player1wins);
+    })
+    }
+    //send rivalry data to socket
+    var P1wins;
+    var P2wins;  
+    get_info(player1, player2, function(result){
+        console.log("player 1 wins: " + P1wins);
+        console.log("player 2 wins: " + P2wins);
+        if(data.player1 == playerNames[0]){
+            let json = {"History": P1wins + " - " + P2wins};
+        }
+        else{
+            let json = {"History": P2wins + " - " + P1wins};
+        }
+        socket.emit("History", json);
+    });
     return data;
 }
 
@@ -74,11 +102,40 @@ io.of("/client").on('connection', function (socket) {
             });
             databaseConnected = 1;
         }
-
+        //inserts new players into table with username and password, doesn't change existing players
+        var sql = "INSERT INTO players VALUES ('" + playerID + "', '1', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+        });
 
         //data.Username, data.Password
         //query for if they are in DB, if yes check password if not make new entry
         //make this set loggedIn to 1 if login successful, 0 if not please
+
+        var loggedIn
+        var PCheck
+        function get_info(playerID, password, callback){
+            var sql = "SELECT playerID, password FROM players WHERE playerID = '" + playerID + "';";
+            db.query(sql, function(err, results){
+                if (err){ 
+                  throw err;
+                }
+                results.forEach((row) => {
+                    PCheck = row.password;  
+                });
+                if(password == PCheck){
+                    loggedIn = true;
+                }
+                else{
+                    loggedIn = false;
+                }
+                return callback(loggedIn);
+        })
+        }
+        
+        get_info(data.Username, data.Password, function(result){
+            console.log(loggedIn)
+        });
         
         if (!loggedIn) {
             console.log("Password for ", data.Username, " incorrect");
@@ -172,14 +229,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
             var loser = data.player1;
         }
         //update winner
-        var set = "SET @playerID = '" + winner + "', @wins = '0', @losses = '0';";
-        var sql = "INSERT INTO players VALUES ('" + winner + "', '1', '0') ON DUPLICATE KEY UPDATE wins = wins + 1;" ;
+        var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + winner + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
         //update loser
-        var set = "SET @playerID = '" + loser + "', @wins = '0', @losses = '0';";
-        var sql = "INSERT INTO players VALUES ('" + loser + "', '0', '1') ON DUPLICATE KEY UPDATE losses = losses + 1;" ;
+        var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + loser + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
@@ -216,7 +271,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
          get_info(data.player1, data.player2, function(result){
             console.log("player 1 wins: " + P1wins);
             console.log("player 2 wins: " + P2wins);
-            let json = {"history": P1wins + " - " + P2wins};
+            if(data.player1 == playerNames[0]){
+                let json = {"history": P1wins + " - " + P2wins};
+            }
+            else{
+                let json = {"history": P2wins + " - " + P1wins};
+            }
             socket.emit("history", json);
          });
 
