@@ -772,6 +772,42 @@ function drawState(){
     );
   }
 
+  //added the Gamestate for Waiting for __ players:
+  
+  if (gamestate === GAMESTATE.TWOPLAYERWAITING) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        "Waiting for Two Players",
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
+  if (gamestate === GAMESTATE.ONEPLAYERWAITING) {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0,0.1";
+    ctx.fill();
+
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(
+        "Waiting for One Player",
+        canvas.width / 2,
+        canvas.height / 2
+    );
+  }
+
+
+//END OF OMAR'S ADDITIONS (SUN 18 MARCH)
+
+
   if (gamestate === GAMESTATE.GAMEOVER) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.1";
@@ -823,11 +859,13 @@ const GAMESTATE = {
     PAUSED: 0,
     RUNNING: 1,
     MENU: 2,
-    GAMEOVER: 3
+    GAMEOVER: 3,
+    TWOPLAYERWAITING: 4,
+    ONEPLAYERWAITING: 5
 };
 
 function init() {
-  gamestate = GAMESTATE.MENU;
+  gamestate = GAMESTATE.TWOPLAYERWAITING;
   document.body.appendChild(canvas);
   // create tanks
   // initialise tank positions to center and facing each other
