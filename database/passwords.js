@@ -8,18 +8,28 @@ const db = mysql.createConnection({
     database: "my_db",
 });
 
+db.connect((err) => {
+    if(err){
+      console.log(err.message);
+      return;
+    }
+    console.log("Database connected")
+});
 
-
+var match
+var PCheck
 function get_info(playerID, password, callback){
-    var sql = "SELECT playerID, password FROM players WHERE playerID = '" + playerID + "' AND password = '" + password + "';";
+    var sql = "SELECT playerID, password FROM players WHERE playerID = '" + playerID + "';";
     db.query(sql, function(err, results){
         if (err){ 
           throw err;
         }
         results.forEach((row) => {
-            //player= row.player1wins;
-            //P2wins = row.player2wins;  
+            PCheck = row.password;  
         });
+        if(password == PCheck){
+            return callback(1);
+        }
         return callback(results.player1wins);
 })
 }

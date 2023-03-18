@@ -37,13 +37,6 @@ db.query(sql, (err, result) => {
     console.log(result);
 });
 
-//displays all columns
-var sql = "UPDATE players SET password = 'password' WHERE playerID = 'Omar';";
-db.query(sql, (err, result) => {
-    if(err) throw err;
-    console.log(result);
-});
-
 //closes connection to the database
 db.end((err) => {
   console.log("connection ended");

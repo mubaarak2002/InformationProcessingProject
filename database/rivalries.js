@@ -38,8 +38,8 @@ db.query(sql, (err, result) => {
 });
 
 //rivalries table update
-var player1ID = "test1";
-var player2ID = "test3";
+var player1ID = "test3";
+var player2ID = "test1";
 var wins = false;
 if (wins){
     var sql = "INSERT INTO rivalries VALUES ('" + player1ID + "', '" + player2ID + "', '1', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;

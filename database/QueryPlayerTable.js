@@ -30,6 +30,8 @@ db.connect((err) => {
   console.log("Database connected")
 });
 
+
+
 //displays all columns
 var sql = "SELECT * FROM players";
 db.query(sql, (err, result) => {
