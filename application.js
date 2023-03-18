@@ -45,7 +45,7 @@ io.of("/client").on('connection', function (socket) {
     
     //added connection based code
     socket.on("connection", function (data) {
-        data.player
+        current_session_players.append(data.player - 1);
     });
 
 

@@ -613,6 +613,10 @@ socket.on("data", (data) => { // event name
     
 });
 
+//these are the players in the current session, so there should only
+//be two entries in this array
+let current_session_players = [];
+
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
@@ -620,7 +624,16 @@ function gameLoop() {
   // console.log(gamestate);
   setTimeout(gameLoop, 0.5);
   console.log("running");
-  if(enterPressed){
+  
+  if(current_session_players.length === 0) {
+    gamestate = GAMESTATE.TWOPLAYERWAITING;
+  } else if (current_session_players.length === 1) {
+    gamestate = GAMESTATE.ONEPLAYERWAITING;
+  } else if (current_session_players.length === 2) {
+    gamestate = GAMESTATE.MENU;
+  }
+
+  if(enterPressed && gamestate === GAMESTATE.MENU){
     start();
   }
   if(escPressed){
@@ -702,8 +715,9 @@ function start(){
         for(let i=0; i<tanks.length; i++){
             tanks.splice(i, 1);
         }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
+        //added the players in the current session to the tanks
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, current_session_players[0], "1", "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, current_session_players[1], "2", "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
@@ -773,7 +787,7 @@ function drawState(){
   }
 
   //added the Gamestate for Waiting for __ players:
-  
+
   if (gamestate === GAMESTATE.TWOPLAYERWAITING) {
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0,0.1";
