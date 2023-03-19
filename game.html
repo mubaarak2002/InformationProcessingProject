@@ -296,42 +296,44 @@ class Tank {
   }
 
   move() {
-    // Caculate angle and magnitude of movement based on the acceleration
-    this.magnitude = Math.sqrt(this.accX * this.accX + this.accY * this.accY);
-    this.angle = Math.atan2(this.accY, this.accX);
+    if (gamestate === GAMESTATE.RUNNING) {
+      // Caculate angle and magnitude of movement based on the acceleration
+      this.magnitude = Math.sqrt(this.accX * this.accX + this.accY * this.accY);
+      this.angle = Math.atan2(this.accY, this.accX);
 
-    // // Limit magnitude
-    // if (this.magnitude >= 141) {
-    //   this.magnitude = 141;
-    // } else if (this.magnitude >= 100) {
-    //   this.magnitude = 100;
-    // } else if (this.magnitude >= 75) {
-    //   this.magnitude = 75;
-    // } else if (this.magnitude >= 50) {
-    //   this.magnitude = 50;
-    // } else if (this.magnitude >= 25) {
-    //   this.magnitude = 25;
-    // } else {
-    //   this.magnitude = 0;
-    // }
+      // // Limit magnitude
+      // if (this.magnitude >= 141) {
+      //   this.magnitude = 141;
+      // } else if (this.magnitude >= 100) {
+      //   this.magnitude = 100;
+      // } else if (this.magnitude >= 75) {
+      //   this.magnitude = 75;
+      // } else if (this.magnitude >= 50) {
+      //   this.magnitude = 50;
+      // } else if (this.magnitude >= 25) {
+      //   this.magnitude = 25;
+      // } else {
+      //   this.magnitude = 0;
+      // }
 
-    // Update coordinates
-    let nx = Math.cos(this.angle) * this.magnitude * this.speed;
-    let ny = Math.sin(this.angle) * this.magnitude * this.speed;
-    
-    this.x += nx;
-    this.y += ny;
+      // Update coordinates
+      let nx = Math.cos(this.angle) * this.magnitude * this.speed;
+      let ny = Math.sin(this.angle) * this.magnitude * this.speed;
+      
+      this.x += nx;
+      this.y += ny;
 
-    // if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[0]) {
+      // if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[0]) {
 
-    //   this.x += nx;
-    // }
-    // if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[1]) {
+      //   this.x += nx;
+      // }
+      // if (allowableMove(forbiddenSpaces, this.x, this.y, nx, ny)[1]) {
 
-    //   this.y += ny;
-    // }
-    this.detectCollision(nx, ny);
-    this.draw();
+      //   this.y += ny;
+      // }
+      this.detectCollision(nx, ny);
+      this.draw();
+    }
   }
 
   fireBullets() {
