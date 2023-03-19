@@ -792,8 +792,8 @@ function start(){
             tanks.splice(i, 1);
         }
         //added the players in the current session to the tanks
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", usernames[0], "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", uesrnames[1], "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", usernames[0], "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", usernames[1], "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){
@@ -802,6 +802,7 @@ function start(){
     }
     // ADD LEVEL STUFF ONCE DONE
     gamestate = GAMESTATE.RUNNING;
+    socket.emit("Ready", "");
 }
 
 function restart(){
@@ -809,8 +810,8 @@ function restart(){
         for(let i=0; i<tanks.length; i++){
             tanks.splice(i, 1);
         }
-        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", usernames[0], "0"));
-        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", usernames[1], "0"));
+        tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", usernames[0], "0"));
+        tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", usernames[1], "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
     } else {
         for(let i = 0; i < tanks.length; i++){

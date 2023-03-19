@@ -2,6 +2,7 @@ const http = require('http');
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
+const sleep = require('sleep');
 
 const db = mysql.createConnection({
     host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
@@ -29,43 +30,46 @@ let clientIDs = [];
 let playerNames = [];
 let webId = null;
 
+function getHistory(player1, player2, gameSend) {
+    // console.log("1: ", player1, " ", player2);
 
-function getHistory(player1, player2) {
-    console.log("1: ", player1, " ", player2);
     //query database for match history of players
     //make sure to rearrange to player1, player2 - should not return from here alphabetically
 
     //format data as a json object
     //data = {"History": history} where history is a string of form 1 - 0
     //query the rivalries table
-    function get_info(player1, player2, callback){
-        console.log("2: ", player1, " ", player2);
+    //send rivalry data to socket
+    let P1wins;
+    let P2wins;
+    let data;
+
+    function get_info(player1, player2, callback) {
+        // console.log("2: ", player1, " ", player2);
         let sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '0', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins;" ;
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
         sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1 + "' AND player2ID = '" + player2 + "';";
-        console.log(sql);
+        // console.log(sql);
         db.query(sql, function(err, results){
             if (err){ 
-              throw err;
+            throw err;
             }
-            console.log(results);
+            // console.log(results);
             results.forEach((row) => {
                 P1wins = row.player1wins;
                 P2wins = row.player2wins;
 
-                console.log("AAAAAAAA  ", P1wins, " ", P2wins);
+                // console.log("AAAAAAAA  ", P1wins, " ", P2wins);
             });
             return callback(results.player1wins);
-    })
+        });
     }
-    //send rivalry data to socket
-    let P1wins;
-    let P2wins;
-    let data;  
+
+
     get_info(player1, player2, function(result){
-        console.log("3: ", player1, " ", player2);
+        // console.log("3: ", player1, " ", player2);
         console.log("player 1 wins: " + P1wins);
         console.log("player 2 wins: " + P2wins);
         if(player1 == playerNames[0]){
@@ -74,10 +78,18 @@ function getHistory(player1, player2) {
         else{
             data = {"History": P2wins + " - " + P1wins};
         }
+                    
+        clientIDs.forEach(clientID => {
+            io.of("/client").to(clientID).emit("clientData", data);
+        });
+        if (gameSend) {
+            io.of("/webpage").to(webId).emit("history", data);
+        }
     });
-    console.log(data);
     return data;
 }
+
+
 
 io.of("/client").on('connection', function (socket) {
     let loginFailed = 0;
@@ -166,23 +178,20 @@ io.of("/client").on('connection', function (socket) {
                 console.log("Login successful");
                 if (clientIDs[0] == null){
                     clientIDs[0] = socket.id;
+                    console.log(clientIDs[0]);
                     playerId = 1;
                     playerNames[playerId-1] = data.Username;
                 } else {
                     clientIDs[1] = socket.id;
+                    console.log(clientIDs[1]);
                     playerId = 2;
                     playerNames[playerId-1] = data.Username;
 
-                    let history;
-                    if(playerNames[1] > playerNames[0]){
-                        history = getHistory(playerNames[1], playerNames[0]);
+                    if (playerNames[0] > playerNames[1]) {
+                        getHistory(playerNames[0], playerNames[1], 0);
                     } else {
-                        history = getHistory(playerNames[0], playerNames[1]);
-                    }                
-
-                    clientIDs.forEach(clientID => {
-                        socket.to(clientID).emit("clientData", history);
-                    });
+                        getHistory(playerNames[1], playerNames[0], 0);
+                    }
                 }
                 console.log("Player ", playerId, ": ", playerNames[playerId-1], " connected."); //reveals client ip
 
@@ -193,12 +202,6 @@ io.of("/client").on('connection', function (socket) {
                 io.of("/webpage").to(webId).emit("connection", json);
             }
         }
-
-        // }
-        
-        // get_info(data.Username, data.Password, function(result){
-        //     console.log(loggedIn);
-        // });
     });
 
     socket.on("terminate", function () {
@@ -208,7 +211,7 @@ io.of("/client").on('connection', function (socket) {
 
     socket.on("data", function (data) {
         data["Player"] = playerId;
-        data["Username"] = playerNames[playerId-1];
+        // data["Username"] = playerNames[playerId-1];
         io.of("/webpage").to(webId).emit("data", data);
     });
 
@@ -229,6 +232,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
 
     socket.on("clientData", function (data) {
         let player = data.Player;
+        console.log("\n\n\n", player);
+        console.log(clientIDs[0]);
+        console.log(clientIDs[1]);
         delete data.Player;
         console.log(data);
         io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
@@ -237,8 +243,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
 
     socket.on("Ready", function() {
         let json = {"ready": "1"};
+        console.log("send ready");
         clientIDs.forEach(clientID => {
-            socket.to(clientID).emit("clientData", json);
+            io.of("/client").to(clientID).emit("clientData", json);
         });
     });
 
@@ -309,13 +316,16 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         });
 
          //closes connection to the database
-        db.end((err) => {
-            console.log("connection ended");
-        });
+        // db.end((err) => {
+        //     console.log("connection ended");
+        // });
 
         
-        let history = getHistory(playerNames[0], playerNames[1]);
-        socket.emit("History", history);
+        if (playerNames[0] > playerNames[1]) {
+            getHistory(playerNames[0], playerNames[1], 1); // 1 is to show we want to send to game also
+        } else {
+            getHistory(playerNames[1], playerNames[0], 1);
+        }
     });
 
 	socket.on("disconnect", function () {
