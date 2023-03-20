@@ -2,6 +2,7 @@ const http = require('http');
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
+const bcrypt = require('bcryptjs');
 
 const db = mysql.createConnection({
     host: "database-1.cxopmddrp3hh.us-east-1.rds.amazonaws.com",
@@ -133,8 +134,9 @@ io.of("/client").on('connection', function (socket) {
             databaseConnected = 1;
         }
 
+        let hashed = bcrypt.hashSync(data.Password, 10);
         //inserts new players into table with username and password, doesn't change existing players
-        let sql = "INSERT INTO players VALUES ('" + data.Username + "', '0', '0', '" + data.Password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
+        let sql = "INSERT INTO players VALUES ('" + data.Username + "', '0', '0', '" + hashed + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
@@ -155,12 +157,9 @@ io.of("/client").on('connection', function (socket) {
                 results.forEach((row) => {
                     PCheck = row.password;  
                 });
-                if(data.Password == PCheck){
-                    loggedIn = true;
+                loggedIn = bcrypt.compareSync(data.Password, PCheck);
+                if(loggedIn){
                     assignUsers();
-                }
-                else{
-                    loggedIn = false;
                 }
                 console.log("logincheck");
                 // resultGot = true;
