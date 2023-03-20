@@ -17,7 +17,7 @@ const db = mysql.createConnection({
 //playerID is the primary key
 
 //Table "rivalries" structure:
-//|player1ID | password | player2ID | player1wins | player2 wins |
+//|player1ID | player2ID | player1wins | player2 wins |
 //player1ID and player2ID form a composite key
 
 
@@ -30,12 +30,16 @@ db.connect((err) => {
   console.log("Database connected")
 });
 
-//displays all columns
-//var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = 't1y' AND player2ID = 'jj7';";
-//db.query(sql, (err, result) => {
-//    if(err) throw err;
-//    console.log(result);
-//});
+//rivalries table update
+var sql = "DELETE FROM players;" ;
+db.query(sql, (err, result) => {
+    if(err) throw err;
+});
+
+var sql = "DELETE FROM rivalries;" ;
+db.query(sql, (err, result) => {
+    if(err) throw err;
+});
 
 //displays all columns
 var sql = "SELECT * FROM rivalries";
@@ -44,8 +48,15 @@ db.query(sql, (err, result) => {
     console.log(result);
 });
 
+//displays all columns
+var sql = "SELECT * FROM players";
+db.query(sql, (err, result) => {
+    if(err) throw err;
+    console.log(result);
+});
+
+
 //closes connection to the database
 db.end((err) => {
-  console.log("connection ended");
-});
-  
+    console.log("connection ended");
+  });
