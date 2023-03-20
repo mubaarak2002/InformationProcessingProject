@@ -649,34 +649,35 @@ socket.on("data", (data) => { // event name
   // I++;
   // console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
   // console.log(data);
+  if(gamestate === GAMESTATE.RUNNING) {
+    if (data.hasOwnProperty('x')){
+      tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
+    }
 
-  if (data.hasOwnProperty('x')){
-    tanks[parseInt(data.Player)-1].accX = -(data.x - 50)/250;
-  }
+    if (data.hasOwnProperty('y')){
+      tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
+    }
 
-  if (data.hasOwnProperty('y')){
-    tanks[parseInt(data.Player)-1].accY = (data.y - 50)/250;
-  }
+    if (data.hasOwnProperty('Fire')){
+        // console.log(tanks[parseInt(data.Player)-1].previousFire, "  ", data.Fire);
+        if (data.Fire == "1" && tanks[parseInt(data.Player)-1].fireable == 1) {
+          tanks[parseInt(data.Player)-1].fire = "1";
+        }
 
-  if (data.hasOwnProperty('Fire')){
-      // console.log(tanks[parseInt(data.Player)-1].previousFire, "  ", data.Fire);
-      if (data.Fire == "1" && tanks[parseInt(data.Player)-1].fireable == 1) {
-        tanks[parseInt(data.Player)-1].fire = "1";
-      }
+        if (data.Fire == "0") {
+          tanks[parseInt(data.Player)-1].fireable = 1;
+        }
 
-      if (data.Fire == "0") {
-        tanks[parseInt(data.Player)-1].fireable = 1;
-      }
-
-      // if(tanks[parseInt(data.Player)-1].previousFire == "0" && data.Fire == "1"){
-      //     tanks[parseInt(data.Player)-1].fire = data.Fire;
-      //     tanks[parseInt(data.Player)-1].previousFire = "1";
-      // } else if(tanks[parseInt(data.Player)-1].previousFire == "1" && data.Fire == "1") {
-      //     tanks[parseInt(data.Player)-1].fire = "0";
-      // } else {
-      //     tanks[parseInt(data.Player)-1].fire = "0";
-      //     tanks[parseInt(data.Player)-1].previousFire = "0";
-      // }
+        // if(tanks[parseInt(data.Player)-1].previousFire == "0" && data.Fire == "1"){
+        //     tanks[parseInt(data.Player)-1].fire = data.Fire;
+        //     tanks[parseInt(data.Player)-1].previousFire = "1";
+        // } else if(tanks[parseInt(data.Player)-1].previousFire == "1" && data.Fire == "1") {
+        //     tanks[parseInt(data.Player)-1].fire = "0";
+        // } else {
+        //     tanks[parseInt(data.Player)-1].fire = "0";
+        //     tanks[parseInt(data.Player)-1].previousFire = "0";
+        // }
+    }
   }    
 });
 
