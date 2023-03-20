@@ -69,13 +69,15 @@ function getHistory(player1, player2, gameSend) {
     
     get_info(player1, player2, function(result){
         // console.log("3: ", player1, " ", player2);
-        console.log("player 1 wins: " + P1wins);
-        console.log("player 2 wins: " + P2wins);
         if(player1 == playerNames[0]){
             data = {"History": P1wins + "-" + P2wins};
+            console.log("player 1 wins: " + P1wins);
+            console.log("player 2 wins: " + P2wins);
         }
         else{
             data = {"History": P2wins + "-" + P1wins};
+            console.log("player 1 wins: " + P2wins);
+            console.log("player 2 wins: " + P1wins);
         }
         
         clientIDs.forEach(clientID => {
@@ -210,6 +212,7 @@ io.of("/client").on('connection', function (socket) {
 
     socket.on("data", function (data) {
         data["Player"] = playerId;
+        // console.log(data, " ", playerNames[playerId-1]);
         // data["Username"] = playerNames[playerId-1];
         io.of("/webpage").to(webId).emit("data", data);
     });
@@ -249,28 +252,22 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     });
 
     socket.on("game over", function (data) {
+        console.log("Game over");
+        console.log(data.winner);
 
         // console.log(data.player1, " ", data.player2);
 
         // add to database the winner and loser data
         // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
-        if (usernames[0] > usernames[1]) {
-            player1 = usernames[0];
-            player2 = usernames[1];
+
+        
+        let winner;
+        if(data.winner == "1") {
+            winner = 1;
         } else {
-            player1 = usernames[1];
-            player2 = usernames[0];
+            winner = 0;
         }
 
-        let winner;
-        let loser;
-        if (data.winner == "1") {
-            winner = 0;
-            loser = 1;
-        } else {
-            winner = 1;
-            loser = 0;
-        }
         
         // if (data.winner){
         //     var winner = data.player1;
@@ -281,17 +278,44 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         //     var loser = data.player1;
         // }
         //update winner
-        var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + usernames[winner] + "';";
+        var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + playerNames[!winner] + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
         //update loser
-        var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + usernames[loser] + "';";
+        var sql = "UPDATE players SET losses = losses + 1 WHERE playerID = '" + playerNames[winner] + "';";
         db.query(sql, (err, result) => {
             if(err) throw err;
         });
+
+
+        if (playerNames[0] > playerNames[1]) {
+            player1 = playerNames[0];
+            player2 = playerNames[1];
+            // if (data.winner == "1") {
+            //     winner = 0;
+            //     loser = 1;
+            // } else {
+            //     winner = 1;
+            //     loser = 0;
+            // }
+        } else {
+            player1 = playerNames[1];
+            player2 = playerNames[0];
+            // if (data.winner == "1") {
+            //     winner = 1;
+            //     loser = 0;
+            // } else {
+            //     winner = 0;
+            //     loser = 1;
+            // }
+            winner = !winner;
+        }
+        console.log(winner);
+
+
         //update rivalries
-        if (data.winner){
+        if (winner){ //!winner as winner=0 for player 1 wins
             var sql = "INSERT INTO rivalries VALUES ('" + player1 + "', '" + player2 + "', '1', '0') ON DUPLICATE KEY UPDATE player1wins = player1wins + 1;" ;
             db.query(sql, (err, result) => {
                 if(err) throw err;
