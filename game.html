@@ -415,7 +415,7 @@ class Tank {
   }
 
   reset() {
-    this.lives = 3;
+    this.lives = maxLives;
     this.accX = 0;
     this.accY = 0;
     if(tanks[0] === this){
@@ -841,6 +841,7 @@ function restart(){
     }
     // ADD LEVEL STUFF ONCE DONE
     gamestate = GAMESTATE.MENU;
+    gameOverSent = false;
 }
 
 function update(){
