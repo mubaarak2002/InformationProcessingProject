@@ -396,16 +396,20 @@ class Tank {
       if(this.lives !== 0){
         this.lives -= 1;
         this.health = 100;
-      }
-      if(this.lives === 0){
-        tanks.splice(tanks.indexOf(this), 1);
-        if(this.player = "1"){
-            winner = "2";
-        } else {
-            winner = "1";
+        let fuckyou = this.player;
+        console.log("New lives for tank", this.player, " is ", this.lives);
+        if(this.lives == 0){
+          // tanks.splice(tanks.indexOf(this), 1);
+          if (this.player == "1"){
+              winner = "2";
+          } else {
+              winner = "1";
+          }
+          console.log("This tank is dead: ", this.player);
+          console.log("Winner is: ", winner);
+          delete this;
+          gamestate = GAMESTATE.GAMEOVER;
         }
-        delete this;
-        gamestate = GAMESTATE.GAMEOVER;
       }
     }
   }
@@ -493,6 +497,7 @@ class Bullet {
           bullets.splice(bullets.indexOf(this), 1);
           delete this;
           tank.health -= this.damage;
+          console.log("Tank ", this.tank.player, " shot tank ", tank.player);
         }
       }
     });
