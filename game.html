@@ -683,8 +683,7 @@ socket.on("data", (data) => { // event name
 //these are the players in the current session, so there should only
 //be two entries in this array
 let current_session_players = [];
-let leftName = usernames[0];
-let rightName = usernames[1];
+
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
@@ -724,28 +723,27 @@ function gameLoop() {
     //printing usernames at top of screen:
     let height = 50;
     let text = height/2;
-    let width = 1/2 * text * leftName.length;
-    
+    let width = 1/2 * text * usernames[0].length;
+    let widthRight = 1/2 * text * usernames[1].length;
   
     //ctx.textAlign = "center";
     ctx.beginPath();
     ctx.fillStyle = "white";
     ctx.fillRect  (0,0,width,height)
-    ctx.font = text.toString()+"px Arial";
+    ctx.font = usernames[0].toString()+"px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText(leftName,0,height - height/3);
+    ctx.fillText(usernames[0],0,height - height/3);
     ctx.closePath();
 
 
-    let widthRight = 1/2 * text * rightName.length;
     
     //ctx.textAlign = "center";
     ctx.beginPath();
     ctx.fillStyle = "white";
     ctx.fillRect  (0,0,width,height)
-    ctx.font = rightName.toString()+"px Arial";
+    ctx.font = usernames[1].toString()+"px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText(rightName,canvas.width - widthRight,height - height/3);
+    ctx.fillText(usernames[1],canvas.width - widthRight,height - height/3);
     ctx.closePath();
     // forbiddenSpaces.forEach((space) => {
     //   drawPoints(space[0], space[1], space[2], space[3]);
