@@ -683,7 +683,8 @@ socket.on("data", (data) => { // event name
 //these are the players in the current session, so there should only
 //be two entries in this array
 let current_session_players = [];
-
+let leftName = usernames[0];
+let rightName = usernames[1];
 // define the game loop
 let lastTime = 0;
 // function gameLoop(timestamp) {
@@ -725,7 +726,7 @@ function gameLoop() {
     let text = height/2;
     let width = 1/2 * text * leftName.length;
     
-    let leftName = usernames[0];
+  
     //ctx.textAlign = "center";
     ctx.beginPath();
     ctx.fillStyle = "white";
@@ -736,7 +737,6 @@ function gameLoop() {
     ctx.closePath();
 
 
-    let rightName = usernames[1];
     let widthRight = 1/2 * text * rightName.length;
     
     //ctx.textAlign = "center";
