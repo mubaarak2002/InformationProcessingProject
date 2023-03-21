@@ -716,7 +716,37 @@ function gameLoop() {
   // clear the canvas
   
   if(gamestate === GAMESTATE.RUNNING){
+
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //printing usernames at top of screen:
+    let height = 50;
+    let text = height/2;
+    let width = 1/2 * text * leftName.length;
+    
+    let leftName = usernames[0];
+    //ctx.textAlign = "center";
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.fillRect  (0,0,width,height)
+    ctx.font = text.toString()+"px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(leftName,0,height - height/3);
+    ctx.closePath();
+
+
+    let rightName = usernames[1];
+    let widthRight = 1/2 * text * rightName.length;
+    
+    //ctx.textAlign = "center";
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.fillRect  (0,0,width,height)
+    ctx.font = rightName.toString()+"px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(rightName,canvas.width - widthRight,height - height/3);
+    ctx.closePath();
     // forbiddenSpaces.forEach((space) => {
     //   drawPoints(space[0], space[1], space[2], space[3]);
     // });
@@ -787,33 +817,7 @@ function start(){
         tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
         wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
 
-        //printing usernames at top of screen:
-        let height = 50;
-        let text = height/2;
-        let width = 1/2 * text * leftName.length;
-        
-        let leftName = usernames[0]
-        //ctx.textAlign = "center";
-        ctx.beginPath();
-        ctx.fillStyle = "white";
-        ctx.fillRect  (0,0,width,height)
-        ctx.font = text.toString()+"px Arial";
-        ctx.fillStyle = "black";
-        ctx.fillText(leftName,0,height - height/3);
-        ctx.closePath();
 
-
-        let rightName = usernames[1];
-        let widthRight = 1/2 * text * rightName.length;
-        
-        //ctx.textAlign = "center";
-        ctx.beginPath();
-        ctx.fillStyle = "white";
-        ctx.fillRect  (0,0,width,height)
-        ctx.font = rightName.toString()+"px Arial";
-        ctx.fillStyle = "black";
-        ctx.fillText(rightName,canvas.width - widthRight,height - height/3);
-        ctx.closePath();
 
     } else {
         for(let i = 0; i < tanks.length; i++){
