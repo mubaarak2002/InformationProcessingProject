@@ -730,7 +730,7 @@ function gameLoop() {
     ctx.beginPath();
     ctx.fillStyle = "white";
     ctx.fillRect  (0,0,width,height)
-    ctx.font = usernames[0].toString()+"px Arial";
+    ctx.font = text.toString()+"px Arial";
     ctx.fillStyle = "black";
     ctx.fillText(usernames[0],0,height - height/3);
     ctx.closePath();
@@ -740,8 +740,8 @@ function gameLoop() {
     //ctx.textAlign = "center";
     ctx.beginPath();
     ctx.fillStyle = "white";
-    ctx.fillRect  (0,0,width,height)
-    ctx.font = usernames[1].toString()+"px Arial";
+    ctx.fillRect  (canvas.width - widthRight,0,width,height)
+    ctx.font = text.toString()+"px Arial";
     ctx.fillStyle = "black";
     ctx.fillText(usernames[1],canvas.width - widthRight,height - height/3);
     ctx.closePath();
