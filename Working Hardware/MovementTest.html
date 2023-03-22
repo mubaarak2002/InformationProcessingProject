@@ -18,14 +18,22 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth - 4;
-canvas.height = window.innerHeight - 4;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const socket = io(); //load socket.io-client and connect to the host that servers the page
+// open socket for players
+const socket = io("/webpage");
 
-socket.on("data", (data) => {
-    console.log(data);
-    // move(data);
+let tanks = [0, 0, 0];
+
+// listen for player data
+socket.on("data", (data) => { // event name 
+  // update the players' tanks
+  console.log(`Player ${data.Player} data: ${data.x}, ${data.y}, ${data.Fire} Username: ${data.Username}`);
+
+  tanks[0] = -(data.x - 50)/10;
+  tanks[1] = (data.y - 50)/10;
+  tanks[2] = data.Fire;
 });
 
 const timer = setTimeout(draw, 1);
@@ -36,7 +44,9 @@ const spriteHeight = 50;
 let x = (canvas.width - spriteWidth)/2;
 let y = (canvas.height - spriteHeight)/2;
 
-function draw() {
+function draw() {  
+    setTimeout(draw, 1);
+    move();
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.beginPath();
     ctx.fillStyle = 'rgb(255,0,0)';
@@ -44,21 +54,9 @@ function draw() {
     ctx.fill();
 }
 
-function move(input) {
-    if (input == 'w') {
-        y -= 20;
-    } else if (input == 'a') {
-        x -= 20;
-    } else if (input == 's') {
-        y += 20;
-    } else if (input == 'd') {
-        x += 20;
-    }
-    draw();
+function move() {
+    x += tanks[0];
+    y += tanks[1];
 }
-
-
-
-draw();
 </script>
 </html>

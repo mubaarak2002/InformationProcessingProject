@@ -1,8 +1,0 @@
-
-<script src="/socket.io/socket.io.js"></script> <!-- include socket.io client side script -->
-<script>
-const socket = io(); //load socket.io-client and connect to the host that servers the page
-
-socket.on("waved", (data) => {
-	circle();
-});
