@@ -548,6 +548,7 @@ function gameLoop() {
 
   // toggle gamestate between pause and running if escape button is pressed
   if(escPressed){
+    socket.emit("restart", "");
     togglePause();
   }
 

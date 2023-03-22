@@ -80,7 +80,7 @@ function getHistory(player1, player2, gameSend) {
             console.log("player 1 wins: " + P2wins);
             console.log("player 2 wins: " + P1wins);
         }
-        
+        console.log("send clients history");
         clientIDs.forEach(clientID => {
             io.of("/client").to(clientID).emit("clientData", data);
         });
@@ -239,7 +239,13 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         delete data.Player;
         console.log(data);
         io.of("/client").to(clientIDs[player - 1]).emit("clientData", data);
-        console.log(player, " send lives to ", clientIDs[player - 1]);
+        console.log(player, " send lives to ", playerNames[player-1]);
+    });
+
+    socket.on("restart", function() {
+        clientIDs = [];
+        playerNames = [];
+        io.of("/client").disconnectSockets();
     });
 
     socket.on("Ready", function() {
@@ -254,8 +260,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         console.log("Game over");
         console.log(data.winner);
 
-        // console.log(data.player1, " ", data.player2);
-
         // add to database the winner and loser data
         // data.player1 | data.player2 | data.winner -- boolean (p1 wins = 1, p2 wins = 0)
 
@@ -267,15 +271,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
             winner = 0;
         }
 
-        
-        // if (data.winner){
-        //     var winner = data.player1;
-        //     var loser = data.player2;
-        // }
-        // else if (data.winner == 0){
-        //     var winner = data.player2;
-        //     var loser = data.player1;
-        // }
         //update winner
         var sql = "UPDATE players SET wins = wins + 1 WHERE playerID = '" + playerNames[!winner] + "';";
         db.query(sql, (err, result) => {
@@ -291,23 +286,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         if (playerNames[0] > playerNames[1]) {
             player1 = playerNames[0];
             player2 = playerNames[1];
-            // if (data.winner == "1") {
-            //     winner = 0;
-            //     loser = 1;
-            // } else {
-            //     winner = 1;
-            //     loser = 0;
-            // }
         } else {
             player1 = playerNames[1];
             player2 = playerNames[0];
-            // if (data.winner == "1") {
-            //     winner = 1;
-            //     loser = 0;
-            // } else {
-            //     winner = 0;
-            //     loser = 1;
-            // }
             winner = !winner;
         }
         console.log(winner);
@@ -326,35 +307,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
                 if(err) throw err;
             });
         }
-        //query the rivalries table
-        // function get_info(player1ID, player2ID, callback){
-        //     let sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
-        //     db.query(sql, function(err, results){
-        //         if (err){ 
-        //           throw err;
-        //         }
-        //         results.forEach((row) => {
-        //             P1wins = row.player1wins;
-        //             P2wins = row.player2wins;  
-        //         });
-        //         return callback(results.player1wins);
-        //     });
-        // }
-        // //send rivalry data to socket
-        // var P1wins;
-        // var P2wins;
-        // get_info(data.player1, data.player2, function(result){
-        //     console.log("player 1 wins: " + P1wins);
-        //     console.log("player 2 wins: " + P2wins);
-        //     let json;
-        //     if(data.player1 == playerNames[0]){
-        //         json = {"history": P1wins + " - " + P2wins};
-        //     }
-        //     else{
-        //         json = {"history": P2wins + " - " + P1wins};
-        //     }
-        //     socket.emit("history", json);
-        // });
 
          //closes connection to the database
         // db.end((err) => {
