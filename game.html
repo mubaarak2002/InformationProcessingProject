@@ -566,7 +566,7 @@ function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     //printing usernames at top of screen:
-    let height = 50;
+    let height = scalar*50;
     let text = height/2;
     let width = 1/2 * text * usernames[0].length;
     let widthRight = 1/2 * text * usernames[1].length;
