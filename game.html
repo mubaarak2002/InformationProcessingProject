@@ -662,6 +662,8 @@ function restart(){
     tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
     tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
     wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
+    wallsLine(20, 20, 5, 1);
+    wallsDiag(canvas.width*0.8, canvas.height*0.8, 0);
   } else {
       for(let i = 0; i < tanks.length; i++){
           tanks[i].reset(); 
