@@ -567,7 +567,7 @@ function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     //printing usernames at top of screen:
-    let height = 50;
+    let height = scalar*50;
     let text = height/2;
     let width = 1/2 * text * usernames[0].length;
     let widthRight = 1/2 * text * usernames[1].length;
@@ -642,6 +642,8 @@ function start(){
     tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
     tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
     wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
+    wallsLine(20, 20, 5, 1);
+    wallsDiag(canvas.width*0.8, canvas.height*0.8, 0);
   } else {
     for(let i = 0; i < tanks.length; i++){
       tanks[i].reset(); 
@@ -663,6 +665,8 @@ function restart(){
     tanks.push(new Tank(canvas.width * 0.25, canvas.height / 2, 0, 0, "Red", "1", "0"));
     tanks.push(new Tank(canvas.width * 0.75, canvas.height / 2, 0, 0, "Blue", "2", "0"));
     wallsL(canvas.width/2, canvas.height/2, 3, 4, 0, 1);
+    wallsLine(20, 20, 5, 1);
+    wallsDiag(canvas.width*0.8, canvas.height*0.8, 0);
   } else {
       for(let i = 0; i < tanks.length; i++){
           tanks[i].reset(); 
