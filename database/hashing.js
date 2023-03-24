@@ -18,17 +18,20 @@ db.connect((err) => {
     console.log("Database connected")
 });
 
+//hashes the provided password
 const password = "password";
 const hashed = bcrypt.hashSync(password, 10);
 console.log(hashed);
 
-
+//stores hashed password into the database
 var playerID = "hashing2";
 var sql = "INSERT INTO players VALUES ('" + playerID + "', '0', '0', '" + hashed + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
 db.query(sql, (err, result) => {
     if(err) throw err;
 });
 
+
+//queries the table for the password and unhashes it
 var match
 var PCheck
 function get_info(playerID, password, callback){
@@ -45,6 +48,7 @@ function get_info(playerID, password, callback){
 })
 }
 
+//compares the user provided password and the unhashed password from the database
 get_info(playerID, hashed, function(result){
     match = bcrypt.compareSync(password, PCheck);
     console.log(match)

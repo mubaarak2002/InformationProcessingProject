@@ -31,6 +31,7 @@ db.query(sql, (err, result) => {
 });
 
 //rivalries table update
+//inserts new players into the table and updates existing ones
 var player1ID = "test3";
 var player2ID = "test1";
 var wins = false;
@@ -47,6 +48,7 @@ else{
     });
 }
 
+//queries the rivalries table for the current players and displays their records
 function get_info(player1ID, player2ID, callback){
     var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
     

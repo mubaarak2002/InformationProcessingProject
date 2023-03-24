@@ -1,0 +1,3 @@
+The files in this folder can be ran using the command "node filename.js" and require the packages mysql and bcryptjs.
+
+These files were used throught the project to test the database functionality in isolation throughout the project. After testing, the code here was adapted for and inserted into the application.js file that was ran in our server.

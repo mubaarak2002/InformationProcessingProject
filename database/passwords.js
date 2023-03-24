@@ -17,6 +17,7 @@ db.connect((err) => {
     console.log("Database connected")
 });
 
+//inserts new players into the table, does nothing form existing players
 var playerID = "qwerty";
 var password = "id";
 var sql = "INSERT INTO players VALUES ('" + playerID + "', '0', '0', '" + password + "') ON DUPLICATE KEY UPDATE playerID = playerID;" ;
@@ -24,6 +25,7 @@ db.query(sql, (err, result) => {
     if(err) throw err;
 });
 
+//queries the table to check if the provided password matches the users password in the table
 var match
 var PCheck
 function get_info(playerID, password, callback){
@@ -45,14 +47,9 @@ function get_info(playerID, password, callback){
 })
 }
 
+//displays the result of the query
 get_info(playerID, password, function(result){
     console.log(match)
-});
-
-var sql = "SELECT * FROM players";
-db.query(sql, (err, result) => {
-    if(err) throw err;
-    console.log(result);
 });
 
 //closes connection to the database
