@@ -1,3 +1,4 @@
+//testing the rivalries table
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
@@ -7,14 +8,6 @@ const db = mysql.createConnection({
     password: "password",
     database: "my_db",
 });
-
-//Two tables in the database
-//One for specific player records
-//One for player rivalries
-
-//Table "players" structure:
-//|playerID | wins | losses |
-//playerID is the primary key
 
 //Table "rivalries" structure:
 //|player1ID | player2ID | player1wins | player2 wins |
@@ -54,18 +47,6 @@ else{
     });
 }
 
-//displays select player1wins and player2wins
-//var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
-//db.query(sql, (err, result) => {
-//    if(err) throw err;
-//    console.log(result);
-
-//    result.forEach((row) => {
-//        console.log(row.player1wins);
-//        console.log(row.player2wins);  
-//    });
-//});
-
 function get_info(player1ID, player2ID, callback){
     var sql = "SELECT player1wins, player2wins FROM rivalries WHERE player1ID = '" + player1ID + "' AND player2ID = '" + player2ID + "';";
     
@@ -85,7 +66,6 @@ var P1wins;
 var P2wins;
 
  get_info(player1ID, player2ID, function(result){
-    //rest of your code goes in here
     console.log(P1wins);
     console.log(P2wins);
  });
