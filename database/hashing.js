@@ -1,3 +1,4 @@
+//testing the password hashing functionality
 const mysql = require("mysql");
 const bcrypt = require('bcryptjs');
 

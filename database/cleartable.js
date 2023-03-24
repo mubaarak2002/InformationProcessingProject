@@ -1,3 +1,4 @@
+// resets the tables for testing purposes
 const mysql = require("mysql");
 
 const db = mysql.createConnection({

@@ -1,3 +1,4 @@
+// testing the login functionality
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
