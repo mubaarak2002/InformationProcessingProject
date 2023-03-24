@@ -2,3 +2,5 @@ The files in this folder can be ran using the command "node filename.js" and req
 
 These files were used throught the project to test the database functionality in isolation throughout the project.
 After testing, the code here was adapted for and inserted into the application.js file that was ran in our server.
+
+The database was hosted on aws using their RDS service and was separate from our EC2 instance running the server. This allowed us to access the database from multiple server instances simultaneously.
